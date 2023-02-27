@@ -1,5 +1,6 @@
 package com.example.medicapp.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,15 +19,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.decode.ImageSource
 import com.example.medicapp.R
 import com.example.medicapp.navigation.OnBoardingScreenSealed
 import com.example.medicapp.ui.theme.Blue1
 import com.example.medicapp.ui.theme.Blue2
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 
 @Composable
 fun LaunchScreen(navController: NavController) {
 
+    val systemUiController = rememberSystemUiController()
+    systemUiController.isSystemBarsVisible = false
     val brushColors = listOf(Blue1, Blue2, Blue1)
 
     Box(
@@ -41,30 +46,16 @@ fun LaunchScreen(navController: NavController) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(text = "Смартлаб", fontWeight = FontWeight.Bold, fontSize = 52.sp, color = Color.White)
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.add_rentagle_icon),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(
-                        shape = RoundedCornerShape(
-                            topStart = 20.dp,
-                            bottomEnd = 20.dp
-                        )
-                    )
-            )
-        }
+        Image(
+            painter = painterResource(id = R.drawable.logo_app_icon),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 56.dp)
+        )
     }
     LaunchedEffect(key1 = true) {
-        delay(2000)
+        delay(1000)
         navController.navigate(OnBoardingScreenSealed.OnBoardingScreen.route)
     }
 }
