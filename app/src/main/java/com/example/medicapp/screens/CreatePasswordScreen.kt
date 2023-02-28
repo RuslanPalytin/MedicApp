@@ -1,5 +1,6 @@
 package com.example.medicapp.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,20 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.BottomCenter
-import androidx.compose.ui.Alignment.Companion.BottomStart
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.colorspace.WhitePoint
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,8 +32,18 @@ fun CreatePasswordScreen(navController: NavController) {
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
     val countClick = remember { mutableStateOf(0) }
+    val passwordList: List<MutableState<String>> = listOf(
+        remember { mutableStateOf("") },
+        remember { mutableStateOf("") },
+        remember { mutableStateOf("") },
+        remember { mutableStateOf("") }
+    )
     val whiteColor = remember { mutableStateOf(Color.White) }
     val blueColor = remember { mutableStateOf(ActiveColorIndicationOnBoarding) }
+
+    if(countClick.value == 4) {
+        navController.navigate(OnBoardingScreenSealed.CreateCardScreen.route)
+    }
 
     Column(
         modifier = Modifier
@@ -99,21 +103,24 @@ fun CreatePasswordScreen(navController: NavController) {
                 firstNumber = 1,
                 secondNumber = 2,
                 thirdNumber = 3,
-                click = countClick
+                click = countClick,
+                password = passwordList
             )
             Spacer(modifier = Modifier.height(24.dp))
             NumberButtonsRow(
                 firstNumber = 4,
                 secondNumber = 5,
                 thirdNumber = 6,
-                click = countClick
+                click = countClick,
+                password = passwordList
             )
             Spacer(modifier = Modifier.height(24.dp))
             NumberButtonsRow(
                 firstNumber = 7,
                 secondNumber = 8,
                 thirdNumber = 9,
-                click = countClick
+                click = countClick,
+                password = passwordList
             )
             Spacer(modifier = Modifier.height(24.dp))
             Row(
@@ -123,7 +130,7 @@ fun CreatePasswordScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NumericKeypad(number = 0, click = countClick)
+                NumericKeypad(number = 0, click = countClick, password = passwordList)
                 Spacer(modifier = Modifier.width(46.dp))
                 Image(
                     modifier = Modifier
@@ -131,16 +138,14 @@ fun CreatePasswordScreen(navController: NavController) {
                         .height(24.dp)
                         .clickable(countClick.value != 0) {
                             countClick.value--
+                            passwordList[countClick.value].value = ""
+                            Log.d("MyLog", passwordList.toString())
                         },
                     painter = painterResource(id = R.drawable.create_password_delete_icon),
                     contentDescription = null
                 )
             }
         }
-    }
-
-    if(countClick.value == 4) {
-        navController.navigate(OnBoardingScreenSealed.CreateCardScreen.route)
     }
 }
 
@@ -149,26 +154,31 @@ private fun NumberButtonsRow(
     firstNumber: Int,
     secondNumber: Int,
     thirdNumber: Int,
-    click: MutableState<Int>
+    click: MutableState<Int>,
+    password: List<MutableState<String>>
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        NumericKeypad(number = firstNumber, click = click)
+        NumericKeypad(number = firstNumber, click = click, password = password)
         Spacer(modifier = Modifier.width(24.dp))
-        NumericKeypad(number = secondNumber, click = click)
+        NumericKeypad(number = secondNumber, click = click, password = password)
         Spacer(modifier = Modifier.width(24.dp))
-        NumericKeypad(number = thirdNumber, click = click)
+        NumericKeypad(number = thirdNumber, click = click, password = password)
     }
 }
 
 @Composable
-private fun NumericKeypad(number: Int, click: MutableState<Int>) {
+private fun NumericKeypad(number: Int, click: MutableState<Int>, password: List<MutableState<String>>) {
     FloatingActionButton(
         modifier = Modifier
             .size(80.dp),
-        onClick = { click.value++ },
+        onClick = {
+            password[click.value].value = number.toString()
+            click.value++
+            Log.d("MyLog", password.toString())
+        },
         backgroundColor = BackgroundTextField,
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 0.dp,
@@ -186,8 +196,6 @@ private fun OneCirclePassword(background: MutableState<Color>) {
         modifier = Modifier.size(16.dp),
         border = BorderStroke(width = 1.dp, color = ActiveColorIndicationOnBoarding),
         backgroundColor = background.value,
-        content = {
-
-        }
+        content = {}
     )
 }

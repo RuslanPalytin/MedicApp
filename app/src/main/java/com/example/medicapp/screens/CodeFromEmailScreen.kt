@@ -22,11 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
 import com.example.medicapp.models.AuthorizationUserModel
-import com.example.medicapp.models.MessageModel
 import com.example.medicapp.models.TokenModel
 import com.example.medicapp.navigation.OnBoardingScreenSealed
 import com.example.medicapp.storage.SharedPreference
@@ -47,7 +45,6 @@ fun CodeFromEmailScreen(navController: NavController) {
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
     var time by remember { mutableStateOf(60) }
-    val isNotNullCode = remember { mutableStateOf(false) }
     val numbersList = listOf(
         remember { mutableStateOf("") },
         remember { mutableStateOf("") },
@@ -87,32 +84,32 @@ fun CodeFromEmailScreen(navController: NavController) {
                 color = GrayTextOnBoarding,
                 fontFamily = LatoRegular,
             )
-
-            if (time == 0) {
-                authUser(
-                    userModel = AuthorizationUserModel(email = SharedPreference(context).readEmail()),
-                    context = context
-                )
-
-                time = 60
-            }
-
-            if (!numbersList.contains(remember { mutableStateOf("") })) {
-
-                val code =
-                    numbersList[0].value + numbersList[1].value + numbersList[2].value + numbersList[3].value
-                val email = SharedPreference(context).readEmail()
-
-                signIn(
-                    userModel = AuthorizationUserModel(email = email, code = code),
-                    context = context,
-                    navController = navController
-                )
-            }
             LaunchedEffect(key1 = time) {
-                while (time != 0) {
+                while (true) {
                     delay(1000)
                     time--
+                    if (time == 0) {
+                        authUser(
+                            userModel = AuthorizationUserModel(
+                                email = SharedPreference(context).readEmail(),
+                            ),
+                            context = context
+                        )
+
+                        time = 60
+                    }
+                    if (numbersList.last().value != "") {
+                        var code = ""
+                        numbersList.forEach { number -> code += number.value }
+                        signIn(
+                            userModel = AuthorizationUserModel(
+                                email = SharedPreference(context).readEmail(),
+                                code = code
+                            ),
+                            context = context,
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
@@ -152,16 +149,15 @@ private fun EditTextCode(number: MutableState<String>) {
 private fun signIn(
     userModel: AuthorizationUserModel,
     context: Context,
-    navController: NavController
+    navController: NavController? = null
 ) {
     ApiService.retrofit.signIn(email = userModel.email, code = userModel.code)
         .enqueue(object : Callback<TokenModel> {
             override fun onResponse(call: Call<TokenModel>, response: Response<TokenModel>) {
                 when (response.code()) {
                     200 -> {
-                        Toast.makeText(context, response.body()?.token, Toast.LENGTH_SHORT).show()
                         SharedPreference(context).saveToken(response.body()?.token.toString())
-                        navController.navigate(OnBoardingScreenSealed.LoginAndRegistrationScreen.route)
+                        navController?.navigate(OnBoardingScreenSealed.CreatePasswordScreen.route)
                     }
                     422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT)
                         .show()

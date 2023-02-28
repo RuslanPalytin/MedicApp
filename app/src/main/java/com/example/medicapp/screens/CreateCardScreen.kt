@@ -1,8 +1,8 @@
 package com.example.medicapp.screens
 
-import android.widget.Spinner
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -14,13 +14,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.medicapp.api.ApiService
+import com.example.medicapp.models.CreateUserModelFromApi
+import com.example.medicapp.models.CreateUserModelInApi
+import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun CreateCardScreen(navController: NavController) {
@@ -28,6 +36,7 @@ fun CreateCardScreen(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
+    val context = LocalContext.current
     val name = remember { mutableStateOf("") }
     val patronymic = remember { mutableStateOf("") }
     val surname = remember { mutableStateOf("") }
@@ -99,7 +108,18 @@ fun CreateCardScreen(navController: NavController) {
                 .height(60.dp)
                 .clip(shape = RoundedCornerShape(10.dp)),
             colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor),
-            onClick = { /*TODO*/ },
+            onClick = {
+                val userCreateModel = CreateUserModelInApi(
+                    id = 1,
+                    firstname = name.value,
+                    lastname = surname.value,
+                    middlename = patronymic.value,
+                    bith = dateBirth.value,
+                    pol = gender.value,
+                    image = "",
+                )
+                createCardUser(userCardModel = userCreateModel, context = context, navController = navController)
+            },
             content = {
                 Text(
                     text = "Создать",
@@ -137,4 +157,35 @@ private fun EditText(placeholder: String, enterText: MutableState<String>) {
             unfocusedIndicatorColor = BorderColorTextField
         )
     )
+}
+
+private fun createCardUser(
+    userCardModel: CreateUserModelInApi,
+    context: Context,
+    navController: NavController
+) {
+
+    val token = SharedPreference(context).readToken()
+
+    ApiService.retrofit.createCardUser(token = "Bearer $token", createUserModel = userCardModel)
+        .enqueue(object : Callback<CreateUserModelFromApi> {
+            override fun onResponse(
+                call: Call<CreateUserModelFromApi>,
+                response: Response<CreateUserModelFromApi>
+            ) {
+                when(response.code()) {
+                    200 -> {
+                        Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
+                    }
+                    403 -> Toast.makeText(context, "Не авторизованы", Toast.LENGTH_SHORT).show()
+                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT).show()
+                    else -> throw IllegalStateException()
+                }
+            }
+
+            override fun onFailure(call: Call<CreateUserModelFromApi>, t: Throwable) {
+                Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
+            }
+
+        })
 }
