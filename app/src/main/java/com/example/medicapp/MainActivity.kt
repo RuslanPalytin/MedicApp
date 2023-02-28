@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.medicapp.graphs.RootNavigationGraph
+import com.example.medicapp.screens.CreateCardScreen
+import com.example.medicapp.screens.CreatePasswordScreen
 import com.example.medicapp.ui.theme.MedicAppTheme
 
 class MainActivity : ComponentActivity() {

@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.medicapp.OnBoardingContentModel
+import com.example.medicapp.models.OnBoardingContentModel
 import com.example.medicapp.R
 import com.example.medicapp.navigation.OnBoardingScreenSealed
 import com.example.medicapp.ui.theme.*

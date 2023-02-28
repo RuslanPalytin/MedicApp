@@ -1,4 +1,4 @@
-package com.example.medicapp
+package com.example.medicapp.models
 
 import androidx.annotation.DrawableRes
 
