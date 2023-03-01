@@ -24,14 +24,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
+import com.example.medicapp.common.MainAlertDialog
+import com.example.medicapp.common.isNetworkAvailable
 import com.example.medicapp.models.AuthorizationUserModel
 import com.example.medicapp.models.TokenModel
 import com.example.medicapp.navigation.OnBoardingScreenSealed
 import com.example.medicapp.storage.SharedPreference
-import com.example.medicapp.ui.theme.BackgroundTextField
-import com.example.medicapp.ui.theme.BorderColorTextField
-import com.example.medicapp.ui.theme.GrayTextOnBoarding
-import com.example.medicapp.ui.theme.LatoRegular
+import com.example.medicapp.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 import retrofit2.Call
@@ -44,14 +43,46 @@ fun CodeFromEmailScreen(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
-    var time by remember { mutableStateOf(60) }
+    val time = remember { mutableStateOf(30) }
     val numbersList = listOf(
         remember { mutableStateOf("") },
         remember { mutableStateOf("") },
         remember { mutableStateOf("") },
         remember { mutableStateOf("") }
     )
+    val responseCode = remember { mutableStateOf(200) }
+    val openDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    if (responseCode.value != 200) openDialog.value = true
+
+    if (openDialog.value) {
+        MainAlertDialog(
+            openDialog = openDialog,
+            responseCode = responseCode,
+            titleTextIf = "Код",
+            titleTextElse = "Ошибка подключения",
+            contentTextIf = "Введен неверный код, проверьте написание кода, или дождитесь полчение нового кода",
+            contentTextElse = "Проверте подклчение к интернету"
+        )
+
+        numbersList.forEach { number ->
+            number.value = mutableStateOf("").value
+        }
+    }
+
+    if (openDialog.value && time.value == 0) {
+
+        MainAlertDialog(
+            openDialog = openDialog,
+            responseCode = responseCode,
+            time = time,
+            titleTextIf = "Ошибка в почте или пароле",
+            titleTextElse = "Ошибка подключения",
+            contentTextIf = "Проверьте правильность написания пароля и почты",
+            contentTextElse = "Проверте подклчение к интернету"
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -67,7 +98,7 @@ fun CodeFromEmailScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row() {
+            Row {
                 EditTextCode(number = numbersList[0])
                 Spacer(modifier = Modifier.width(16.dp))
                 EditTextCode(number = numbersList[1])
@@ -78,25 +109,27 @@ fun CodeFromEmailScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Отправить код повторно можно будет через $time секунд",
+                text = "Отправить код повторно можно будет через ${time.value} секунд",
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 color = GrayTextOnBoarding,
                 fontFamily = LatoRegular,
             )
-            LaunchedEffect(key1 = time) {
+            LaunchedEffect(key1 = time.value) {
                 while (true) {
                     delay(1000)
-                    time--
-                    if (time == 0) {
+                    time.value--
+                    if (time.value == 0) {
                         authUser(
                             userModel = AuthorizationUserModel(
                                 email = SharedPreference(context).readEmail(),
                             ),
-                            context = context
+                            context = context,
+                            code = responseCode
                         )
-
-                        time = 60
+                        if (responseCode.value == 200 || responseCode.value == 204) {
+                            time.value = 30
+                        }
                     }
                     if (numbersList.last().value != "") {
                         var code = ""
@@ -107,7 +140,8 @@ fun CodeFromEmailScreen(navController: NavController) {
                                 code = code
                             ),
                             context = context,
-                            navController = navController
+                            navController = navController,
+                            code = responseCode
                         )
                     }
                 }
@@ -130,6 +164,7 @@ fun CodeFromEmailScreen(navController: NavController) {
 private fun EditTextCode(number: MutableState<String>) {
     OutlinedTextField(
         modifier = Modifier
+            .padding(start = 8.dp)
             .clip(shape = RoundedCornerShape(10.dp))
             .size(52.dp),
         value = number.value,
@@ -149,25 +184,29 @@ private fun EditTextCode(number: MutableState<String>) {
 private fun signIn(
     userModel: AuthorizationUserModel,
     context: Context,
-    navController: NavController? = null
+    navController: NavController? = null,
+    code: MutableState<Int> = mutableStateOf(0)
 ) {
-    ApiService.retrofit.signIn(email = userModel.email, code = userModel.code)
-        .enqueue(object : Callback<TokenModel> {
-            override fun onResponse(call: Call<TokenModel>, response: Response<TokenModel>) {
-                when (response.code()) {
-                    200 -> {
+    if (isNetworkAvailable(context)) {
+        ApiService.retrofit.signIn(email = userModel.email, code = userModel.code)
+            .enqueue(object : Callback<TokenModel> {
+                override fun onResponse(call: Call<TokenModel>, response: Response<TokenModel>) {
+
+                    if (response.isSuccessful) {
                         SharedPreference(context).saveToken(response.body()?.token.toString())
                         navController?.navigate(OnBoardingScreenSealed.CreatePasswordScreen.route)
+                        code.value = response.code()
+                    } else {
+                        code.value = response.code()
                     }
-                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT)
-                        .show()
-                    else -> throw IllegalStateException()
                 }
-            }
 
-            override fun onFailure(call: Call<TokenModel>, t: Throwable) {
-                Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
-            }
+                override fun onFailure(call: Call<TokenModel>, t: Throwable) {
+                    Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
+                }
 
-        })
+            })
+    } else {
+        code.value = 204
+    }
 }

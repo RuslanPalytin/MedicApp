@@ -9,11 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,10 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
+import com.example.medicapp.common.MainAlertDialog
+import com.example.medicapp.common.isNetworkAvailable
 import com.example.medicapp.models.AuthorizationUserModel
 import com.example.medicapp.models.MessageModel
 import com.example.medicapp.navigation.OnBoardingScreenSealed
@@ -45,8 +41,24 @@ fun LoginAndRegistrationScreen(navController: NavController) {
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
     var email by remember { mutableStateOf("") }
+    val code = remember { mutableStateOf(200) }
+    val openDialog = remember { mutableStateOf(false) }
     var isActiveClick by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    if (code.value != 200) openDialog.value = true
+
+    if (openDialog.value) {
+
+        MainAlertDialog(
+            openDialog = openDialog,
+            responseCode = code,
+            titleTextIf = "E-mail",
+            titleTextElse = "Ошибка подключения",
+            contentTextIf = "Ошибка ввода почты",
+            contentTextElse = "Проверте подклчение к интернету"
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -111,7 +123,7 @@ fun LoginAndRegistrationScreen(navController: NavController) {
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(shape = RoundedCornerShape(10.dp)),
-            enabled = isActiveClick,
+
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = ButtonEnabledColor,
                 disabledBackgroundColor = ButtonDisabledColor
@@ -120,7 +132,8 @@ fun LoginAndRegistrationScreen(navController: NavController) {
                 authUser(
                     userModel = AuthorizationUserModel(email = email),
                     context = context,
-                    navController = navController
+                    navController = navController,
+                    code = code
                 )
             },
             content = {
@@ -178,25 +191,28 @@ fun LoginAndRegistrationScreen(navController: NavController) {
 fun authUser(
     userModel: AuthorizationUserModel,
     context: Context,
-    navController: NavController? = null
+    navController: NavController? = null,
+    code: MutableState<Int> = mutableStateOf(0),
 ) {
+    if(isNetworkAvailable(context)) {
+        ApiService.retrofit.sendCode(userModel.email).enqueue(object : Callback<MessageModel> {
+            override fun onResponse(call: Call<MessageModel>, response: Response<MessageModel>) {
 
-    ApiService.retrofit.sendCode(userModel.email).enqueue(object : Callback<MessageModel> {
-        override fun onResponse(call: Call<MessageModel>, response: Response<MessageModel>) {
-            when (response.code()) {
-                200 -> {
-                    Toast.makeText(context, response.body()?.message, Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful) {
                     SharedPreference(context).saveEmail(userModel.email)
                     navController?.navigate(OnBoardingScreenSealed.CodeFromEmailScreen.route)
+                    code.value = response.code()
+                } else {
+                    code.value = response.code()
                 }
-                422 -> Toast.makeText(context, response.body()?.errors?.first(), Toast.LENGTH_SHORT).show()
-                else -> throw IllegalStateException()
             }
-        }
 
-        override fun onFailure(call: Call<MessageModel>, t: Throwable) {
-            Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
-        }
+            override fun onFailure(call: Call<MessageModel>, t: Throwable) {
+                Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
+            }
 
-    })
+        })
+    } else {
+        code.value = 204
+    }
 }

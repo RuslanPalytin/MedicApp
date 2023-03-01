@@ -3,6 +3,7 @@ package com.example.medicapp.screens
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -60,7 +61,11 @@ fun CreateCardScreen(navController: NavController) {
                 fontFamily = LatoRegular
             )
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate(Graph.HOME_GRAPH)
+                    },
                 textAlign = TextAlign.End,
                 text = "Пропустить",
                 fontSize = 15.sp,
