@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,7 +22,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.decode.ImageSource
 import com.example.medicapp.R
+import com.example.medicapp.graphs.Graph
 import com.example.medicapp.navigation.OnBoardingScreenSealed
+import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.Blue1
 import com.example.medicapp.ui.theme.Blue2
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -32,6 +35,7 @@ fun LaunchScreen(navController: NavController) {
 
     val systemUiController = rememberSystemUiController()
     systemUiController.isSystemBarsVisible = false
+    val context = LocalContext.current
     val brushColors = listOf(Blue1, Blue2, Blue1)
 
     Box(
@@ -56,6 +60,11 @@ fun LaunchScreen(navController: NavController) {
     }
     LaunchedEffect(key1 = true) {
         delay(1000)
-        navController.navigate(OnBoardingScreenSealed.OnBoardingScreen.route)
+        val token = SharedPreference(context).readToken()
+        if(token != "") {
+            navController.navigate(Graph.HOME_GRAPH)
+        } else {
+            navController.navigate(OnBoardingScreenSealed.OnBoardingScreen.route)
+        }
     }
 }

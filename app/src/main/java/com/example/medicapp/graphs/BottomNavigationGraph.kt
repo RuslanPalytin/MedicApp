@@ -5,10 +5,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.medicapp.navigation.BottomNavigationSealed
-import com.example.medicapp.screens.bottomnav.AnaliseScreen
-import com.example.medicapp.screens.bottomnav.ProfileScreen
-import com.example.medicapp.screens.bottomnav.ResultScreen
-import com.example.medicapp.screens.bottomnav.SupportScreen
+import com.example.medicapp.screens.bottomnav.analise.AnaliseScreen
+import com.example.medicapp.screens.bottomnav.profile.ProfileScreen
+import com.example.medicapp.screens.bottomnav.result.ResultScreen
+import com.example.medicapp.screens.bottomnav.support.SupportScreen
 
 @Composable
 fun BottomNavigationGraph(navController: NavHostController) {

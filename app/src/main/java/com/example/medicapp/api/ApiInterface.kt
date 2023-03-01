@@ -1,11 +1,9 @@
 package com.example.medicapp.api
 
-import com.example.medicapp.models.CreateUserModelFromApi
-import com.example.medicapp.models.CreateUserModelInApi
-import com.example.medicapp.models.MessageModel
-import com.example.medicapp.models.TokenModel
+import com.example.medicapp.models.*
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
@@ -27,4 +25,14 @@ interface ApiInterface {
         @Header("Authorization") token: String,
         @Body createUserModel: CreateUserModelInApi
     ): Call<CreateUserModelFromApi>
+
+    @GET("api/news")
+    fun getStockAndNews(
+        @Header("Authorization") token: String
+    ): Call<List<StockAndNewsModel>?>
+
+    @GET("api/catalog")
+    fun getCatalog(
+        @Header("Authorization") token: String
+    ): Call<List<CatalogModel>?>
 }

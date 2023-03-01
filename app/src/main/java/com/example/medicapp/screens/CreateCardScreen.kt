@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medicapp.api.ApiService
+import com.example.medicapp.graphs.Graph
 import com.example.medicapp.models.CreateUserModelFromApi
 import com.example.medicapp.models.CreateUserModelInApi
 import com.example.medicapp.storage.SharedPreference
@@ -176,6 +177,7 @@ private fun createCardUser(
                 when(response.code()) {
                     200 -> {
                         Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
+                        navController.navigate(Graph.HOME_GRAPH)
                     }
                     403 -> Toast.makeText(context, "Не авторизованы", Toast.LENGTH_SHORT).show()
                     422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT).show()
