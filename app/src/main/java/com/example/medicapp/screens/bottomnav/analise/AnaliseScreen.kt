@@ -5,10 +5,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -113,14 +115,17 @@ fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
     Spacer(modifier = Modifier.height(16.dp))
 
     if (getNews.value != null) {
-        HorizontalPager(
-            count = getNews.value!!.size,
-            state = pagerState,
-            contentPadding = PaddingValues(end = 65.dp),
-            itemSpacing = 16.dp
-        ) { page ->
-            StockAndNewsItem(item = getNews.value!![page], count = page)
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(count = getNews.value!!.size) { index ->
+                StockAndNewsItem(item = getNews.value!![index], count = index)
+            }
         }
+
+
+
     }
 }
 
@@ -134,10 +139,7 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
 
     if(getCatalog.value != null){
         categories = getCatalog.value!!.distinctBy { it.category }
-        Log.d("MyLog", "categories: $categories")
     }
-
-
 
     Text(
         text = "Каталог анализов",

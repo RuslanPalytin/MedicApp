@@ -38,7 +38,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun CodeFromEmailScreen(navController: NavController) {
+fun CodeFromEmailScreen(navController: NavController, email: String) {
 
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
@@ -136,7 +136,7 @@ fun CodeFromEmailScreen(navController: NavController) {
                         numbersList.forEach { number -> code += number.value }
                         signIn(
                             userModel = AuthorizationUserModel(
-                                email = SharedPreference(context).readEmail(),
+                                email = email,
                                 code = code
                             ),
                             context = context,

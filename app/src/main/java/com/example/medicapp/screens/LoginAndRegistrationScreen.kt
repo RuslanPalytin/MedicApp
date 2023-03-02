@@ -199,8 +199,8 @@ fun authUser(
             override fun onResponse(call: Call<MessageModel>, response: Response<MessageModel>) {
 
                 if (response.isSuccessful) {
-                    SharedPreference(context).saveEmail(userModel.email)
-                    navController?.navigate(OnBoardingScreenSealed.CodeFromEmailScreen.route)
+                    //SharedPreference(context).saveEmail(userModel.email)
+                    navController?.navigate(OnBoardingScreenSealed.CodeFromEmailScreen.passEmail(email = userModel.email))
                     code.value = response.code()
                 } else {
                     code.value = response.code()
