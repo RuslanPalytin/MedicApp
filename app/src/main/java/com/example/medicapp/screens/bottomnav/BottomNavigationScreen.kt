@@ -54,6 +54,8 @@ fun BottomBar(navController: NavHostController) {
 
     if (bottomBarDestination) {
         BottomNavigation(
+            modifier = Modifier.padding(bottom = 16.dp),
+            elevation = 0.dp,
             backgroundColor = Color.White
         ) {
             screens.forEach { screen ->

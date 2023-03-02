@@ -23,6 +23,7 @@ import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
 import com.example.medicapp.models.CatalogModel
 import com.example.medicapp.models.StockAndNewsModel
+import com.example.medicapp.screens.bottomnav.analise.uiitems.CatalogItem
 import com.example.medicapp.screens.bottomnav.analise.uiitems.StockAndNewsItem
 import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.*
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Locale.Category
 
 @Composable
 fun AnaliseScreen(navController: NavController) {
@@ -58,7 +60,7 @@ fun AnaliseScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if(getCatalog.value != null){
+        if (getCatalog.value != null) {
             Catalog(getCatalog = getCatalog)
         }
     }
@@ -123,9 +125,6 @@ fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
                 StockAndNewsItem(item = getNews.value!![index], count = index)
             }
         }
-
-
-
     }
 }
 
@@ -133,11 +132,11 @@ fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
 @Composable
 fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
 
-    val pagerState = rememberPagerState(initialPage = getCatalog.value!!.size)
+    val pagerState = rememberPagerState()
 
     var categories: List<CatalogModel> = listOf()
 
-    if(getCatalog.value != null){
+    if (getCatalog.value != null) {
         categories = getCatalog.value!!.distinctBy { it.category }
     }
 
@@ -151,8 +150,12 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) {
-        Tabs(categories = categories, pagerState = pagerState)
+    ) { contentPadding ->
+        Column(modifier = Modifier.padding(paddingValues = contentPadding).padding(bottom = 16.dp)) {
+            Tabs(categories = categories, pagerState = pagerState)
+            Spacer(modifier = Modifier.height(24.dp))
+            TabsContent(tabs = categories, response = getCatalog, pagerState = pagerState)
+        }
     }
 }
 
@@ -162,27 +165,42 @@ fun Tabs(categories: List<CatalogModel>, pagerState: PagerState) {
 
     val scope = rememberCoroutineScope()
 
-    TabRow(
-        modifier = Modifier
-            .background(color = Color.White)
-            .padding(horizontal = 16.dp),
+    ScrollableTabRow(
         selectedTabIndex = pagerState.currentPage,
         backgroundColor = Color.White,
-        contentColor = Color.White,
+        edgePadding = 0.dp,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
-                modifier = Modifier.pagerTabIndicatorOffset(pagerState = pagerState, tabPositions = tabPositions)
+                modifier = Modifier
+                    .pagerTabIndicatorOffset(
+                        pagerState = pagerState,
+                        tabPositions = tabPositions
+                    )
+                    .height(0.dp)
             )
-        }
+        },
+        divider = { Divider(thickness = 0.dp, color = Color.White) }
     ) {
         categories.forEachIndexed { index, tab ->
+
+            val selected = pagerState.currentPage == index
+
             Tab(
-                selected = pagerState.currentPage == index,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .clip(shape = RoundedCornerShape(10.dp))
+                    .background(color = if (selected) ButtonEnabledColor else BackgroundTextField),
+                selected = selected,
+                selectedContentColor = Color.White,
+                unselectedContentColor = UnselectedTabTextColor,
                 text = {
                     Text(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(vertical = 14.dp),
                         text = tab.category,
                         fontFamily = LatoRegular,
-                        color = if(pagerState.currentPage == index) Color.White else UnselectedTabTextColor
+                        fontSize = 15.sp
                     )
                 },
                 onClick = {
@@ -190,6 +208,37 @@ fun Tabs(categories: List<CatalogModel>, pagerState: PagerState) {
                         pagerState.animateScrollToPage(index)
                     }
                 })
+        }
+    }
+}
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun TabsContent(
+    tabs: List<CatalogModel>,
+    response: MutableState<List<CatalogModel>?>,
+    pagerState: PagerState,
+) {
+    HorizontalPager(
+        count = tabs.size,
+        state = pagerState,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) { page ->
+
+        val list: MutableList<CatalogModel> = mutableListOf()
+
+        for (i in 0 until response.value!!.size) {
+            if (response.value!![i].category == tabs[page].category) {
+                list.add(response.value!![i])
+            }
+        }
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            items(count = list.size) { index ->
+                CatalogItem(item = list[index])
+            }
         }
     }
 }

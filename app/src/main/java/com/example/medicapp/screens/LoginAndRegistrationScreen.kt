@@ -123,7 +123,7 @@ fun LoginAndRegistrationScreen(navController: NavController) {
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(shape = RoundedCornerShape(10.dp)),
-
+            enabled = isActiveClick,
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = ButtonEnabledColor,
                 disabledBackgroundColor = ButtonDisabledColor
@@ -194,13 +194,16 @@ fun authUser(
     navController: NavController? = null,
     code: MutableState<Int> = mutableStateOf(0),
 ) {
-    if(isNetworkAvailable(context)) {
+    if (isNetworkAvailable(context)) {
         ApiService.retrofit.sendCode(userModel.email).enqueue(object : Callback<MessageModel> {
             override fun onResponse(call: Call<MessageModel>, response: Response<MessageModel>) {
 
                 if (response.isSuccessful) {
-                    //SharedPreference(context).saveEmail(userModel.email)
-                    navController?.navigate(OnBoardingScreenSealed.CodeFromEmailScreen.passEmail(email = userModel.email))
+                    navController?.navigate(
+                        OnBoardingScreenSealed.CodeFromEmailScreen.passEmail(
+                            email = userModel.email
+                        )
+                    )
                     code.value = response.code()
                 } else {
                     code.value = response.code()

@@ -122,7 +122,7 @@ fun CodeFromEmailScreen(navController: NavController, email: String) {
                     if (time.value == 0) {
                         authUser(
                             userModel = AuthorizationUserModel(
-                                email = SharedPreference(context).readEmail(),
+                                email = email,
                             ),
                             context = context,
                             code = responseCode

@@ -2,25 +2,26 @@ package com.example.medicapp.screens
 
 import android.content.Context
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
 import com.example.medicapp.graphs.Graph
 import com.example.medicapp.models.CreateUserModelFromApi
@@ -44,6 +45,11 @@ fun CreateCardScreen(navController: NavController) {
     val surname = remember { mutableStateOf("") }
     val dateBirth = remember { mutableStateOf("") }
     val gender = remember { mutableStateOf("") }
+    var isActiveButton by remember { mutableStateOf(false) }
+
+    isActiveButton = name.value != "" && patronymic.value != "" &&
+            surname.value != "" && dateBirth.value != "" &&
+            gender.value != ""
 
     Column(
         modifier = Modifier
@@ -98,7 +104,7 @@ fun CreateCardScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
         EditText(placeholder = "Дата рождения", enterText = dateBirth)
         Spacer(modifier = Modifier.height(24.dp))
-        EditText(placeholder = "Пол", enterText = gender)
+        EditText(placeholder = "Пол", enterText = gender, icon = R.drawable.dpor_down_menu_icon)
     }
 
     Box(
@@ -113,7 +119,11 @@ fun CreateCardScreen(navController: NavController) {
                 .fillMaxWidth()
                 .height(60.dp)
                 .clip(shape = RoundedCornerShape(10.dp)),
-            colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor),
+            enabled = isActiveButton,
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = ButtonEnabledColor,
+                disabledBackgroundColor = ButtonDisabledColor
+            ),
             onClick = {
                 val userCreateModel = CreateUserModelInApi(
                     id = 1,
@@ -124,7 +134,11 @@ fun CreateCardScreen(navController: NavController) {
                     pol = gender.value,
                     image = "",
                 )
-                createCardUser(userCardModel = userCreateModel, context = context, navController = navController)
+                createCardUser(
+                    userCardModel = userCreateModel,
+                    context = context,
+                    navController = navController
+                )
             },
             content = {
                 Text(
@@ -140,29 +154,80 @@ fun CreateCardScreen(navController: NavController) {
 }
 
 @Composable
-private fun EditText(placeholder: String, enterText: MutableState<String>) {
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(10.dp)),
-        value = enterText.value,
-        onValueChange = { newText -> enterText.value = newText },
-        placeholder = {
-            Text(
-                text = placeholder,
-                fontFamily = LatoRegular,
-                fontSize = 14.sp
-            )
-        },
-        singleLine = true,
-        colors = TextFieldDefaults.textFieldColors(
-            cursorColor = GrayTextOnBoarding,
-            backgroundColor = BackgroundTextField,
-            placeholderColor = GrayTextOnBoarding,
-            focusedIndicatorColor = BorderColorTextField,
-            unfocusedIndicatorColor = BorderColorTextField
+private fun EditText(
+    placeholder: String,
+    enterText: MutableState<String>,
+    @DrawableRes icon: Int? = null,
+) {
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(10.dp)),
+            value = enterText.value,
+            onValueChange = { newText -> enterText.value = newText },
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontFamily = LatoRegular,
+                    fontSize = 14.sp
+                )
+            },
+            singleLine = true,
+            colors = TextFieldDefaults.textFieldColors(
+                cursorColor = GrayTextOnBoarding,
+                backgroundColor = BackgroundTextField,
+                placeholderColor = GrayTextOnBoarding,
+                focusedIndicatorColor = BorderColorTextField,
+                unfocusedIndicatorColor = BorderColorTextField
+            ),
+            enabled = icon == null,
+            trailingIcon = {
+                if (icon != null) {
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { expanded = true },
+                        painter = painterResource(id = icon),
+                        contentDescription = null
+                    )
+                }
+            }
         )
-    )
+        DropdownMenu(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(CenterHorizontally)
+                .padding(horizontal = 20.dp),
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            Text(
+                text = "Мужской",
+                fontSize = 18.sp,
+                fontFamily = LatoRegular,
+                modifier = Modifier.clickable {
+                    enterText.value = "Мужской"
+                    expanded = false
+                }
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "Женский",
+                fontSize = 18.sp,
+                fontFamily = LatoRegular,
+                modifier = Modifier.clickable {
+                    enterText.value = "Женский"
+                    expanded = false
+                }
+            )
+        }
+    }
+
+
 }
 
 private fun createCardUser(
@@ -179,13 +244,14 @@ private fun createCardUser(
                 call: Call<CreateUserModelFromApi>,
                 response: Response<CreateUserModelFromApi>
             ) {
-                when(response.code()) {
+                when (response.code()) {
                     200 -> {
                         Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
                         navController.navigate(Graph.HOME_GRAPH)
                     }
                     403 -> Toast.makeText(context, "Не авторизованы", Toast.LENGTH_SHORT).show()
-                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT).show()
+                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT)
+                        .show()
                     else -> throw IllegalStateException()
                 }
             }

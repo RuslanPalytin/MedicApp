@@ -37,7 +37,6 @@ fun OnBoardingScreen(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
-    var actionText by remember { mutableStateOf("Пропустить") }
     val contentList = listOf(
         OnBoardingContentModel(
             title = "Анализы",
@@ -72,7 +71,7 @@ fun OnBoardingScreen(navController: NavController) {
                     .clickable {
                         navController.navigate(OnBoardingScreenSealed.LoginAndRegistrationScreen.route)
                     },
-                text = actionText,
+                text = if(pagerState.currentPage == 2) "Завершить" else "Пропустить" ,
                 color = BlueTextOnBoarding,
                 fontSize = 20.sp,
                 fontFamily = LatoRegular
@@ -124,12 +123,6 @@ fun OnBoardingScreen(navController: NavController) {
                     .padding(horizontal = 16.dp),
                 alignment = Center
             )
-
-            actionText = if (pagerState.currentPage == 2) {
-                "Завершить"
-            } else {
-                "Пропустить"
-            }
         }
     }
 }

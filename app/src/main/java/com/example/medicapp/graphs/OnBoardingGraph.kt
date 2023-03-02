@@ -6,7 +6,7 @@ import com.example.medicapp.navigation.OnBoardingScreenSealed
 import com.example.medicapp.screens.*
 import kotlin.reflect.typeOf
 
-const val EMAIL = "_email"
+const val EMAIL = "email"
 
 fun NavGraphBuilder.onBoardingGraph(navController: NavHostController) {
     navigation(
