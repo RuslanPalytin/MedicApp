@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medicapp.models.CatalogModel
@@ -24,7 +25,9 @@ import com.example.medicapp.ui.theme.LatoRegular
 fun CatalogItem(item: CatalogModel) {
     Card(
         elevation = 3.dp,
-        modifier = Modifier.fillMaxWidth().shadow(elevation = 3.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(elevation = 3.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -32,7 +35,12 @@ fun CatalogItem(item: CatalogModel) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(text = item.name, fontSize = 16.sp, fontFamily = LatoRegular)
+            Text(
+                text = item.name,
+                fontSize = 16.sp,
+                fontFamily = LatoRegular,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -46,7 +54,12 @@ fun CatalogItem(item: CatalogModel) {
                         fontFamily = LatoRegular
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = item.price + "₽", fontFamily = LatoRegular, fontSize = 17.sp)
+                    Text(
+                        text = item.price + "₽",
+                        fontFamily = LatoRegular,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Button(
                     onClick = { /*TODO*/ },

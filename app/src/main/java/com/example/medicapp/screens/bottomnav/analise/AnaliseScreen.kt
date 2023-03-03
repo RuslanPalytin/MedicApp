@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
@@ -43,6 +45,9 @@ fun AnaliseScreen(navController: NavController) {
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
     getNews(context = context, result = getNews)
     getCatalog(context = context, result = getCatalog)
+    val lazyListState = rememberLazyListState()
+    var scrolledY = 0f
+    var previousOffset = 0
 
     Column(
         modifier = Modifier
@@ -151,7 +156,9 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
-        Column(modifier = Modifier.padding(paddingValues = contentPadding).padding(bottom = 16.dp)) {
+        Column(modifier = Modifier
+            .padding(paddingValues = contentPadding)
+            .padding(bottom = 16.dp)) {
             Tabs(categories = categories, pagerState = pagerState)
             Spacer(modifier = Modifier.height(24.dp))
             TabsContent(tabs = categories, response = getCatalog, pagerState = pagerState)
