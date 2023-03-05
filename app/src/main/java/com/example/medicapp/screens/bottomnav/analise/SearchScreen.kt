@@ -1,5 +1,6 @@
 package com.example.medicapp.screens.bottomnav.analise
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -7,16 +8,19 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.medicapp.R
 import com.example.medicapp.ui.theme.*
 
 @Composable
-fun SearchScreen() {
+fun SearchScreen(navController: NavController) {
 
     var searchText by remember { mutableStateOf("") }
 
@@ -26,7 +30,7 @@ fun SearchScreen() {
             .padding(top = 40.dp)
             .padding(horizontal = 20.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
@@ -42,16 +46,13 @@ fun SearchScreen() {
                 },
                 trailingIcon = {
                     Icon(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable {
+                                searchText = ""
+                            },
                         painter = painterResource(id = R.drawable.cancel_icon),
                         contentDescription = null
-                    )
-                },
-                placeholder = {
-                    Text(
-                        text = "Искать анализы",
-                        fontFamily = LatoRegular,
-                        fontSize = 16.sp
                     )
                 },
                 singleLine = true,
@@ -65,7 +66,11 @@ fun SearchScreen() {
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { navController.popBackStack() },
                 text = "Отменить",
+                textAlign = TextAlign.Center,
                 fontFamily = LatoRegular,
                 color = BlueTextOnBoarding,
                 fontSize = 14.sp

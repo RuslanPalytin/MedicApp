@@ -1,6 +1,5 @@
 package com.example.medicapp.screens
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,7 +40,7 @@ fun CreatePasswordScreen(navController: NavController) {
     val whiteColor = remember { mutableStateOf(Color.White) }
     val blueColor = remember { mutableStateOf(ActiveColorIndicationOnBoarding) }
 
-    if(countClick.value == 4) {
+    if (passwordList.last().value.length == 1) {
         navController.navigate(OnBoardingScreenSealed.CreateCardScreen.route)
     }
 
@@ -139,7 +138,6 @@ fun CreatePasswordScreen(navController: NavController) {
                         .clickable(countClick.value != 0) {
                             countClick.value--
                             passwordList[countClick.value].value = ""
-                            Log.d("MyLog", passwordList.toString())
                         },
                     painter = painterResource(id = R.drawable.create_password_delete_icon),
                     contentDescription = null
@@ -170,14 +168,23 @@ private fun NumberButtonsRow(
 }
 
 @Composable
-private fun NumericKeypad(number: Int, click: MutableState<Int>, password: List<MutableState<String>>) {
+private fun NumericKeypad(
+    number: Int,
+    click: MutableState<Int>,
+    password: List<MutableState<String>>
+) {
     FloatingActionButton(
         modifier = Modifier
-            .size(80.dp),
+            .size(80.dp)
+            .clickable(enabled = click.value < 4) {
+                password[click.value].value = number.toString()
+                click.value++
+            },
         onClick = {
-            password[click.value].value = number.toString()
-            click.value++
-            Log.d("MyLog", password.toString())
+            if (click.value < 4) {
+                password[click.value].value = number.toString()
+                click.value++
+            }
         },
         backgroundColor = BackgroundTextField,
         elevation = FloatingActionButtonDefaults.elevation(
@@ -191,6 +198,7 @@ private fun NumericKeypad(number: Int, click: MutableState<Int>, password: List<
 
 @Composable
 private fun OneCirclePassword(background: MutableState<Color>) {
+
     Card(
         shape = CircleShape,
         modifier = Modifier.size(16.dp),

@@ -1,13 +1,13 @@
 package com.example.medicapp.screens.bottomnav.analise
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.medicapp.R
 import com.example.medicapp.api.ApiService
+import com.example.medicapp.graphs.Graph
 import com.example.medicapp.models.CatalogModel
 import com.example.medicapp.models.StockAndNewsModel
 import com.example.medicapp.screens.bottomnav.analise.uiitems.CatalogItem
@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.Locale.Category
 
 @Composable
 fun AnaliseScreen(navController: NavController) {
@@ -45,9 +44,6 @@ fun AnaliseScreen(navController: NavController) {
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
     getNews(context = context, result = getNews)
     getCatalog(context = context, result = getCatalog)
-    val lazyListState = rememberLazyListState()
-    var scrolledY = 0f
-    var previousOffset = 0
 
     Column(
         modifier = Modifier
@@ -57,7 +53,7 @@ fun AnaliseScreen(navController: NavController) {
             .padding(top = 40.dp)
     ) {
 
-        Search()
+        Search(navController = navController)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -72,46 +68,44 @@ fun AnaliseScreen(navController: NavController) {
 }
 
 @Composable
-fun Search() {
+fun Search(navController: NavController) {
 
     var search by remember { mutableStateOf("") }
 
-    OutlinedTextField(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(10.dp)),
-        value = search,
-        onValueChange = { newText -> search = newText },
-        leadingIcon = {
+            .height(48.dp)
+            .clip(shape = RoundedCornerShape(10.dp))
+            .background(color = BackgroundTextField)
+            .border(width = 1.dp, color = BorderColorTextField)
+            .clickable {
+                navController.navigate(Graph.ANALISE_GRAPH)
+            },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
                 modifier = Modifier.size(20.dp),
                 painter = painterResource(id = R.drawable.search_icon),
                 contentDescription = null
             )
-        },
-        placeholder = {
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "Искать анализы",
                 fontFamily = LatoRegular,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = GrayTextOnBoarding
             )
-        },
-        singleLine = true,
-        colors = TextFieldDefaults.textFieldColors(
-            cursorColor = GrayTextOnBoarding,
-            backgroundColor = BackgroundTextField,
-            placeholderColor = GrayTextOnBoarding,
-            focusedIndicatorColor = BorderColorTextField,
-            unfocusedIndicatorColor = BorderColorTextField
-        )
-    )
+        }
+    }
 }
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
-
-    val pagerState = rememberPagerState()
 
     Text(
         text = "Акции и новости",
@@ -156,9 +150,11 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
-        Column(modifier = Modifier
-            .padding(paddingValues = contentPadding)
-            .padding(bottom = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(paddingValues = contentPadding)
+                .padding(bottom = 16.dp)
+        ) {
             Tabs(categories = categories, pagerState = pagerState)
             Spacer(modifier = Modifier.height(24.dp))
             TabsContent(tabs = categories, response = getCatalog, pagerState = pagerState)

@@ -29,5 +29,6 @@ fun BottomNavigationGraph(navController: NavHostController) {
         composable(route = BottomNavigationSealed.ProfileScreen.route) {
             ProfileScreen(navController)
         }
+        analiseScreen(navController = navController)
     }
 }

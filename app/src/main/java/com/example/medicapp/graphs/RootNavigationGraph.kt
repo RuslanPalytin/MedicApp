@@ -24,4 +24,5 @@ object Graph {
     const val ROOT_GRAPH = "root_graph"
     const val ON_BOARDING_GRAPH = "on_boarding_graph"
     const val HOME_GRAPH = "home_graph"
+    const val ANALISE_GRAPH = "analise_graph"
 }
