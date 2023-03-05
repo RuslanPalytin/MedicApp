@@ -6,6 +6,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface ApiInterface {
 
@@ -24,6 +25,12 @@ interface ApiInterface {
     fun createCardUser(
         @Header("Authorization") token: String,
         @Body createUserModel: CreateUserModelInApi
+    ): Call<CreateUserModelFromApi>
+
+    @PUT("api/updateProfile")
+    fun updateCardUser(
+        @Header("Authorization") token: String,
+        @Body updateUserModel: CreateUserModelInApi
     ): Call<CreateUserModelFromApi>
 
     @GET("api/news")

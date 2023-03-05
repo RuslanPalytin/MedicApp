@@ -5,7 +5,7 @@ data class CreateUserModelInApi(
     val firstname: String,
     val lastname: String,
     val middlename: String,
-    val bith: String,
+    var bith: String,
     val pol: String,
     val image: String,
 )

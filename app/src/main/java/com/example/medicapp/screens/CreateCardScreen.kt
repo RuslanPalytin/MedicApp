@@ -26,6 +26,7 @@ import com.example.medicapp.api.ApiService
 import com.example.medicapp.graphs.Graph
 import com.example.medicapp.models.CreateUserModelFromApi
 import com.example.medicapp.models.CreateUserModelInApi
+import com.example.medicapp.storage.DbHandler
 import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -47,8 +48,8 @@ fun CreateCardScreen(navController: NavController) {
     val gender = remember { mutableStateOf("") }
     var isActiveButton by remember { mutableStateOf(false) }
 
-    isActiveButton = name.value != "" && patronymic.value != "" &&
-            surname.value != "" && dateBirth.value != "" &&
+    isActiveButton = name.value != "" || patronymic.value != "" ||
+            surname.value != "" || dateBirth.value != "" ||
             gender.value != ""
 
     Column(
@@ -70,6 +71,17 @@ fun CreateCardScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
+
+                        val createCardUser = CreateUserModelInApi(
+                            id = 1,
+                            firstname = "",
+                            lastname = "",
+                            middlename = "",
+                            bith = "",
+                            pol = "",
+                            image = ""
+                        )
+                        DbHandler(context).setUserDate(createCardUser)
                         navController.navigate(Graph.HOME_GRAPH)
                     },
                 textAlign = TextAlign.End,
@@ -134,6 +146,9 @@ fun CreateCardScreen(navController: NavController) {
                     pol = gender.value,
                     image = "",
                 )
+
+                DbHandler(context).setUserDate(user = userCreateModel)
+
                 createCardUser(
                     userCardModel = userCreateModel,
                     context = context,
@@ -226,8 +241,6 @@ private fun EditText(
             )
         }
     }
-
-
 }
 
 private fun createCardUser(
