@@ -1,7 +1,9 @@
 package com.example.medicapp.screens.bottomnav.analise
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
@@ -11,26 +13,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medicapp.R
+import com.example.medicapp.models.CatalogModel
+import com.example.medicapp.screens.bottomnav.analise.uiitems.SearchOneItem
 import com.example.medicapp.ui.theme.*
 
 @Composable
 fun SearchScreen(navController: NavController) {
 
     var searchText by remember { mutableStateOf("") }
+    var filteredText: List<CatalogModel> = listOf()
+    val context = LocalContext.current
+    val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
+    getCatalog(context = context, result = getCatalog)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 40.dp)
-            .padding(horizontal = 20.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
@@ -75,6 +85,23 @@ fun SearchScreen(navController: NavController) {
                 color = BlueTextOnBoarding,
                 fontSize = 14.sp
             )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(color = StrokeSearchColor)
+        )
+        LazyColumn(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+        ) {
+            if(getCatalog.value != null) {
+                items(count = getCatalog.value!!.size) { index ->
+                    SearchOneItem(item = getCatalog.value!![index])
+                }
+            }
         }
     }
 }

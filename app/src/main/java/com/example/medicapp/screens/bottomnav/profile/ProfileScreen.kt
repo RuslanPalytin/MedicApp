@@ -7,10 +7,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,19 +45,23 @@ fun ProfileScreen(navController: NavController) {
     val lastName = remember { mutableStateOf("") }
     val dateBirth = remember { mutableStateOf("") }
     val gender = remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
     var isActiveButton by remember { mutableStateOf(false) }
 
-    db?.toString()?.let { Log.d("MyLog", it) }
+    isActiveButton = firstName.value != "" || middleName.value != "" ||
+            lastName.value != "" || dateBirth.value != "" ||
+            gender.value != ""
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 32.dp)
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 20.dp, vertical = 32.dp)
+            .verticalScroll(state = scrollState, enabled = true),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (db?.firstname == "" || db?.lastname == "" || db?.middlename == "" || db?.bith == "" || db?.pol == "") {
+        if (db.firstname == "" || db.lastname == "" || db.middlename == "" || db.bith == "" || db.pol == "") {
             Text(
-                modifier = Modifier.fillMaxWidth(0.6f),
+                modifier = Modifier.fillMaxWidth(0.6f).align(Start),
                 text = "Создание карты пациента",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -62,11 +69,11 @@ fun ProfileScreen(navController: NavController) {
             )
         } else {
 
-            firstName.value = db?.firstname.toString()
-            middleName.value = db?.middlename.toString()
-            lastName.value = db?.lastname.toString()
-            dateBirth.value = db?.bith.toString()
-            gender.value = db?.pol.toString()
+            firstName.value = db.firstname
+            middleName.value = db.middlename
+            lastName.value = db.lastname
+            dateBirth.value = db.bith
+            gender.value = db.pol
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -99,44 +106,6 @@ fun ProfileScreen(navController: NavController) {
                 }
             }
         }
-    }
-
-    isActiveButton = firstName.value != "" || middleName.value != "" ||
-            lastName.value != "" || dateBirth.value != "" ||
-            gender.value != ""
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 32.dp)
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            text = "Карта пациента",
-            fontFamily = LatoRegular,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp
-        )
-        Spacer(modifier = Modifier.height(7.dp))
-        Box(
-            modifier = Modifier
-                .width(148.dp)
-                .height(123.dp)
-                .clip(shape = RoundedCornerShape(60.dp))
-                .background(color = BorderColorTextField),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.photo_icon),
-                contentDescription = null,
-                modifier = Modifier
-                    .width(53.dp)
-                    .height(48.dp)
-            )
-        }
         Spacer(modifier = Modifier.height(7.dp))
         Text(
             text = "Без карты пациента вы не сможете заказать анализы. " +
@@ -164,10 +133,10 @@ fun ProfileScreen(navController: NavController) {
             icon = R.drawable.dpor_down_menu_icon
         )
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 56.dp)
             .padding(horizontal = 20.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -182,6 +151,8 @@ fun ProfileScreen(navController: NavController) {
                 disabledBackgroundColor = ButtonDisabledColor
             ),
             onClick = {
+                val _db = DbHandler(context)
+                val oldUserDate = _db.getUserDate()
                 val userCreateModel = CreateUserModelInApi(
                     id = 1,
                     firstname = firstName.value,
@@ -191,11 +162,13 @@ fun ProfileScreen(navController: NavController) {
                     pol = gender.value,
                     image = "",
                 )
+
                 updateProfileUser(
                     userCardModel = userCreateModel,
                     context = context,
                     navController = navController
                 )
+                _db.updateUserData(oldModel = oldUserDate, newModel = userCreateModel)
             },
             content = {
                 Text(
@@ -304,7 +277,7 @@ private fun updateProfileUser(
                         Toast.makeText(context, "Данные сохранены!", Toast.LENGTH_SHORT).show()
                     }
                     403 -> Toast.makeText(context, "Не авторизованы", Toast.LENGTH_SHORT).show()
-                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT)
+                    422 -> Toast.makeText(context, "Ошибку возвращает сервер", Toast.LENGTH_SHORT)
                         .show()
                     else -> throw IllegalStateException()
                 }

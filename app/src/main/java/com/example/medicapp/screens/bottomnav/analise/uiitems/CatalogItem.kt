@@ -1,28 +1,41 @@
 package com.example.medicapp.screens.bottomnav.analise.uiitems
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medicapp.models.CatalogModel
+import com.example.medicapp.screens.bottomnav.analise.BottomSheetContent
 import com.example.medicapp.ui.theme.ButtonEnabledColor
 import com.example.medicapp.ui.theme.GrayTextOnBoarding
 import com.example.medicapp.ui.theme.LatoRegular
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CatalogItem(item: CatalogModel) {
+
+    val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val scope = rememberCoroutineScope()
+    ModalBottomSheetLayout(
+        sheetContent = {
+            BottomSheetContent(item = item, scope = scope, state = modalSheetState)
+        },
+        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheetState = modalSheetState,
+        sheetBackgroundColor = Color.White,
+    ) {
+        //TODO Доделать реализацию
+    }
+
     Card(
         elevation = 3.dp,
         modifier = Modifier
@@ -34,6 +47,11 @@ fun CatalogItem(item: CatalogModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .clickable {
+                    scope.launch {
+                        modalSheetState.show()
+                    }
+                }
         ) {
             Text(
                 text = item.name,

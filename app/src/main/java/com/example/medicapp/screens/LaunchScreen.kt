@@ -60,7 +60,11 @@ fun LaunchScreen(navController: NavController) {
     }
     LaunchedEffect(key1 = true) {
         delay(1000)
-
-        navController.navigate(OnBoardingScreenSealed.OnBoardingScreen.route)
+        val token = SharedPreference(context).readToken()
+        if(token == "") {
+            navController.navigate(OnBoardingScreenSealed.OnBoardingScreen.route)
+        } else {
+            navController.navigate(Graph.HOME_GRAPH)
+        }
     }
 }

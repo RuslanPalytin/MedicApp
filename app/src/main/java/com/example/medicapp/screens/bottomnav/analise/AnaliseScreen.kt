@@ -69,9 +69,6 @@ fun AnaliseScreen(navController: NavController) {
 
 @Composable
 fun Search(navController: NavController) {
-
-    var search by remember { mutableStateOf("") }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,7 +145,8 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
     Spacer(modifier = Modifier.height(16.dp))
 
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+
     ) { contentPadding ->
         Column(
             modifier = Modifier

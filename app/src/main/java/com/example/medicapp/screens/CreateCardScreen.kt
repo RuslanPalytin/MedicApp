@@ -1,6 +1,7 @@
 package com.example.medicapp.screens
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -74,14 +75,15 @@ fun CreateCardScreen(navController: NavController) {
 
                         val createCardUser = CreateUserModelInApi(
                             id = 1,
-                            firstname = "",
-                            lastname = "",
-                            middlename = "",
-                            bith = "",
-                            pol = "",
+                            firstname = name.value,
+                            lastname = surname.value,
+                            middlename = patronymic.value,
+                            bith = dateBirth.value,
+                            pol = gender.value,
                             image = ""
                         )
                         DbHandler(context).setUserDate(createCardUser)
+                        Log.d("MyLog", DbHandler(context).getUserDate().toString())
                         navController.navigate(Graph.HOME_GRAPH)
                     },
                 textAlign = TextAlign.End,
@@ -263,7 +265,7 @@ private fun createCardUser(
                         navController.navigate(Graph.HOME_GRAPH)
                     }
                     403 -> Toast.makeText(context, "Не авторизованы", Toast.LENGTH_SHORT).show()
-                    422 -> Toast.makeText(context, response.body()?.errors, Toast.LENGTH_SHORT)
+                    422 -> Toast.makeText(context, "Ошибку возвращает сервер", Toast.LENGTH_SHORT)
                         .show()
                     else -> throw IllegalStateException()
                 }

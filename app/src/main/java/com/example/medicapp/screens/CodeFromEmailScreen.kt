@@ -43,7 +43,7 @@ fun CodeFromEmailScreen(navController: NavController, email: String) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White, darkIcons = true)
 
-    val time = remember { mutableStateOf(30) }
+    val time = remember { mutableStateOf(60) }
     val numbersList = listOf(
         remember { mutableStateOf("") },
         remember { mutableStateOf("") },
@@ -128,7 +128,7 @@ fun CodeFromEmailScreen(navController: NavController, email: String) {
                             code = responseCode
                         )
                         if (responseCode.value == 200 || responseCode.value == 204) {
-                            time.value = 30
+                            time.value = 60
                         }
                     }
                     if (numbersList.last().value != "") {
