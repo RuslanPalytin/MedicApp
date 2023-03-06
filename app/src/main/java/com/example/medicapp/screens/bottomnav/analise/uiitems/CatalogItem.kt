@@ -12,29 +12,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medicapp.models.CatalogModel
-import com.example.medicapp.screens.bottomnav.analise.BottomSheetContent
 import com.example.medicapp.ui.theme.ButtonEnabledColor
 import com.example.medicapp.ui.theme.GrayTextOnBoarding
 import com.example.medicapp.ui.theme.LatoRegular
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CatalogItem(item: CatalogModel) {
-
-    val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-    val scope = rememberCoroutineScope()
-    ModalBottomSheetLayout(
-        sheetContent = {
-            BottomSheetContent(item = item, scope = scope, state = modalSheetState)
-        },
-        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        sheetState = modalSheetState,
-        sheetBackgroundColor = Color.White,
-    ) {
-        //TODO Доделать реализацию
-    }
+fun CatalogItem(
+    item: CatalogModel,
+    scope: CoroutineScope,
+    modalSheetState: ModalBottomSheetState,
+    selectedItem: MutableState<CatalogModel?>
+) {
 
     Card(
         elevation = 3.dp,
@@ -48,6 +40,7 @@ fun CatalogItem(item: CatalogModel) {
                 .fillMaxWidth()
                 .padding(16.dp)
                 .clickable {
+                    selectedItem.value = item
                     scope.launch {
                         modalSheetState.show()
                     }

@@ -30,11 +30,13 @@ import com.example.medicapp.screens.bottomnav.analise.uiitems.StockAndNewsItem
 import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.*
 import com.google.accompanist.pager.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AnaliseScreen(navController: NavController) {
 
@@ -44,25 +46,46 @@ fun AnaliseScreen(navController: NavController) {
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
     getNews(context = context, result = getNews)
     getCatalog(context = context, result = getCatalog)
+    val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val scope = rememberCoroutineScope()
+    val selectedItem = remember { mutableStateOf<CatalogModel?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White)
-            .padding(horizontal = 20.dp)
-            .padding(top = 40.dp)
-    ) {
+    if (getCatalog.value != null) {
+        ModalBottomSheetLayout(
+            sheetContent = {
+                BottomSheetContent(
+                    item = getCatalog.value!![0],
+                    scope = scope,
+                    state = modalSheetState
+                )
+            },
+            sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            sheetState = modalSheetState,
+            sheetBackgroundColor = Color.White,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.White)
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 40.dp)
+            ) {
 
-        Search(navController = navController)
+                Search(navController = navController)
 
-        Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-        StockAndNews(getNews = getNews)
+                StockAndNews(getNews = getNews)
 
-        Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-        if (getCatalog.value != null) {
-            Catalog(getCatalog = getCatalog)
+                Catalog(
+                    getCatalog = getCatalog,
+                    scope = scope,
+                    modalSheetState = modalSheetState,
+                    selectedItem = selectedItem
+                )
+            }
         }
     }
 }
@@ -124,10 +147,14 @@ fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
-
+fun Catalog(
+    getCatalog: MutableState<List<CatalogModel>?>,
+    scope: CoroutineScope,
+    modalSheetState: ModalBottomSheetState,
+    selectedItem: MutableState<CatalogModel?>
+) {
     val pagerState = rememberPagerState()
 
     var categories: List<CatalogModel> = listOf()
@@ -147,7 +174,7 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
 
-    ) { contentPadding ->
+        ) { contentPadding ->
         Column(
             modifier = Modifier
                 .padding(paddingValues = contentPadding)
@@ -155,7 +182,14 @@ fun Catalog(getCatalog: MutableState<List<CatalogModel>?>) {
         ) {
             Tabs(categories = categories, pagerState = pagerState)
             Spacer(modifier = Modifier.height(24.dp))
-            TabsContent(tabs = categories, response = getCatalog, pagerState = pagerState)
+            TabsContent(
+                tabs = categories,
+                response = getCatalog,
+                pagerState = pagerState,
+                scope = scope,
+                modalSheetState = modalSheetState,
+                selectedItem = selectedItem
+            )
         }
     }
 }
@@ -213,12 +247,15 @@ fun Tabs(categories: List<CatalogModel>, pagerState: PagerState) {
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun TabsContent(
     tabs: List<CatalogModel>,
     response: MutableState<List<CatalogModel>?>,
     pagerState: PagerState,
+    scope: CoroutineScope,
+    modalSheetState: ModalBottomSheetState,
+    selectedItem: MutableState<CatalogModel?>
 ) {
     HorizontalPager(
         count = tabs.size,
@@ -238,7 +275,12 @@ fun TabsContent(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(count = list.size) { index ->
-                CatalogItem(item = list[index])
+                CatalogItem(
+                    item = list[index],
+                    scope = scope,
+                    modalSheetState = modalSheetState,
+                    selectedItem = selectedItem
+                )
             }
         }
     }
