@@ -2,6 +2,7 @@ package com.example.medicapp.screens.bottomnav.analise.uiitems
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -10,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medicapp.models.CatalogModel
 import com.example.medicapp.ui.theme.LatoRegular
-import com.example.medicapp.ui.theme.StrokeSearchColor
+import com.example.medicapp.ui.theme.StrokeItemColor
 
 @Composable
 fun SearchOneItem(item: CatalogModel) {
@@ -39,11 +40,6 @@ fun SearchOneItem(item: CatalogModel) {
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(color = StrokeSearchColor)
-        )
+        Divider(thickness = 1.dp, color = StrokeItemColor)
     }
 }

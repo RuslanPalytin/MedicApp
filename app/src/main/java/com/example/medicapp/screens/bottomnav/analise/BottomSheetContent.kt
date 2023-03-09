@@ -28,7 +28,7 @@ fun BottomSheetContent(item: CatalogModel, scope: CoroutineScope, state: ModalBo
             .padding(horizontal = 20.dp)
             .padding(top = 24.dp, bottom = 40.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
                 modifier = Modifier.fillMaxWidth(0.8f),
                 text = item.name,
@@ -67,8 +67,8 @@ fun BottomSheetContent(item: CatalogModel, scope: CoroutineScope, state: ModalBo
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = item.preparation, fontFamily = LatoRegular, fontSize = 15.sp)
         Spacer(modifier = Modifier.height(57.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-            Column {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.fillMaxWidth(0.6f)) {
                 Text(
                     text = "Результаты через:",
                     fontFamily = LatoRegular,

@@ -1,10 +1,9 @@
 package com.example.medicapp.screens.bottomnav.analise
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -25,8 +25,10 @@ import com.example.medicapp.api.ApiService
 import com.example.medicapp.graphs.Graph
 import com.example.medicapp.models.CatalogModel
 import com.example.medicapp.models.StockAndNewsModel
+import com.example.medicapp.navigation.AnaliseScreenSealed
 import com.example.medicapp.screens.bottomnav.analise.uiitems.CatalogItem
 import com.example.medicapp.screens.bottomnav.analise.uiitems.StockAndNewsItem
+import com.example.medicapp.storage.DbHandlerAnalise
 import com.example.medicapp.storage.SharedPreference
 import com.example.medicapp.ui.theme.*
 import com.google.accompanist.pager.*
@@ -36,6 +38,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+@SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AnaliseScreen(navController: NavController) {
@@ -48,13 +51,14 @@ fun AnaliseScreen(navController: NavController) {
     getCatalog(context = context, result = getCatalog)
     val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
+    val price = remember { mutableStateOf(0) }
     val selectedItem = remember { mutableStateOf<CatalogModel?>(null) }
 
     if (getCatalog.value != null) {
         ModalBottomSheetLayout(
             sheetContent = {
                 BottomSheetContent(
-                    item = getCatalog.value!![0],
+                    item = if (selectedItem.value != null) selectedItem.value!! else getCatalog.value!![0],
                     scope = scope,
                     state = modalSheetState
                 )
@@ -63,6 +67,7 @@ fun AnaliseScreen(navController: NavController) {
             sheetState = modalSheetState,
             sheetBackgroundColor = Color.White,
         ) {
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -83,7 +88,15 @@ fun AnaliseScreen(navController: NavController) {
                     getCatalog = getCatalog,
                     scope = scope,
                     modalSheetState = modalSheetState,
-                    selectedItem = selectedItem
+                    selectedItem = selectedItem,
+                    price = price
+                )
+            }
+
+            if (price.value != 0) {
+                ShoppingCart(
+                    prices = price,
+                    navController = navController,
                 )
             }
         }
@@ -126,13 +139,13 @@ fun Search(navController: NavController) {
 
 @Composable
 fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
-
     Text(
         text = "Акции и новости",
         fontSize = 17.sp,
         fontFamily = LatoRegular,
         color = GrayTextOnBoarding
     )
+
     Spacer(modifier = Modifier.height(16.dp))
 
     if (getNews.value != null) {
@@ -145,6 +158,7 @@ fun StockAndNews(getNews: MutableState<List<StockAndNewsModel>?>) {
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
@@ -153,10 +167,10 @@ fun Catalog(
     getCatalog: MutableState<List<CatalogModel>?>,
     scope: CoroutineScope,
     modalSheetState: ModalBottomSheetState,
-    selectedItem: MutableState<CatalogModel?>
+    selectedItem: MutableState<CatalogModel?>,
+    price: MutableState<Int>
 ) {
     val pagerState = rememberPagerState()
-
     var categories: List<CatalogModel> = listOf()
 
     if (getCatalog.value != null) {
@@ -169,12 +183,13 @@ fun Catalog(
         fontFamily = LatoRegular,
         color = GrayTextOnBoarding
     )
+
     Spacer(modifier = Modifier.height(16.dp))
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-
-        ) { contentPadding ->
+        modifier = Modifier
+            .fillMaxSize()
+    ) { contentPadding ->
         Column(
             modifier = Modifier
                 .padding(paddingValues = contentPadding)
@@ -188,7 +203,8 @@ fun Catalog(
                 pagerState = pagerState,
                 scope = scope,
                 modalSheetState = modalSheetState,
-                selectedItem = selectedItem
+                selectedItem = selectedItem,
+                price = price
             )
         }
     }
@@ -196,7 +212,10 @@ fun Catalog(
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun Tabs(categories: List<CatalogModel>, pagerState: PagerState) {
+fun Tabs(
+    categories: List<CatalogModel>,
+    pagerState: PagerState
+) {
 
     val scope = rememberCoroutineScope()
 
@@ -255,7 +274,8 @@ fun TabsContent(
     pagerState: PagerState,
     scope: CoroutineScope,
     modalSheetState: ModalBottomSheetState,
-    selectedItem: MutableState<CatalogModel?>
+    selectedItem: MutableState<CatalogModel?>,
+    price: MutableState<Int>,
 ) {
     HorizontalPager(
         count = tabs.size,
@@ -279,10 +299,73 @@ fun TabsContent(
                     item = list[index],
                     scope = scope,
                     modalSheetState = modalSheetState,
-                    selectedItem = selectedItem
+                    selectedItem = selectedItem,
+                    price = price
                 )
             }
         }
+    }
+}
+
+@Composable
+fun ShoppingCart(
+    prices: MutableState<Int>,
+    navController: NavController
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(), contentAlignment = Alignment.BottomCenter
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(104.dp),
+            backgroundColor = Color.White,
+            border = BorderStroke(1.dp, color = StrokeItemColor)
+        ) {
+            Button(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = ButtonEnabledColor,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(10.dp),
+                onClick = { navController.navigate(AnaliseScreenSealed.ShoppingCardScreen.route) }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(0.5f)) {
+                        Image(
+                            modifier = Modifier.size(20.dp),
+                            painter = painterResource(id = R.drawable.shop_icon),
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "В корзину",
+                            fontSize = 17.sp,
+                            fontFamily = LatoRegular,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Text(
+                        text = "${prices.value} ₽",
+                        fontSize = 17.sp,
+                        fontFamily = LatoRegular,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
     }
 }
 
