@@ -27,8 +27,9 @@ fun SearchScreen(navController: NavController) {
     var searchText by remember { mutableStateOf("") }
     var filteredText: List<CatalogModel> = listOf()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
-    getCatalog(context = context, result = getCatalog)
+    getCatalog(context = context, result = getCatalog, scope)
 
     Column(
         modifier = Modifier

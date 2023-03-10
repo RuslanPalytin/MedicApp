@@ -1,15 +1,19 @@
 package com.example.medicapp.screens.bottomnav.profile
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +21,7 @@ import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +53,15 @@ fun ProfileScreen(navController: NavController) {
     val scrollState = rememberScrollState()
     var isActiveButton by remember { mutableStateOf(false) }
 
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val bitmap = remember { mutableStateOf<Bitmap?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            imageUri = uri
+        }
+    )
+
     isActiveButton = firstName.value != "" || middleName.value != "" ||
             lastName.value != "" || dateBirth.value != "" ||
             gender.value != ""
@@ -61,7 +75,9 @@ fun ProfileScreen(navController: NavController) {
     ) {
         if (db.firstname == "" || db.lastname == "" || db.middlename == "" || db.bith == "" || db.pol == "") {
             Text(
-                modifier = Modifier.fillMaxWidth(0.6f).align(Start),
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .align(Start),
                 text = "Создание карты пациента",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -93,9 +109,28 @@ fun ProfileScreen(navController: NavController) {
                         .width(148.dp)
                         .height(123.dp)
                         .clip(shape = RoundedCornerShape(60.dp))
-                        .background(color = BorderColorTextField),
+                        .background(color = BorderColorTextField)
+                        .clickable {
+                            launcher.launch("image/*")
+                        },
                     contentAlignment = Alignment.Center
                 ) {
+
+                    imageUri?.let {
+                        if (Build.VERSION.SDK_INT < 28) {
+                            bitmap.value = MediaStore.Images
+                                .Media.getBitmap(context.contentResolver, it)
+                        } else {
+                            val source = ImageDecoder
+                                .createSource(context.contentResolver, it)
+                            bitmap.value = ImageDecoder.decodeBitmap(source)
+                        }
+
+                        bitmap.value?.let { btm ->
+                            Image(bitmap = btm.asImageBitmap(), contentDescription = null, modifier = Modifier.size(150.dp))
+                        }
+                    }
+
                     Icon(
                         painter = painterResource(id = R.drawable.photo_icon),
                         contentDescription = null,
@@ -151,6 +186,11 @@ fun ProfileScreen(navController: NavController) {
                 disabledBackgroundColor = ButtonDisabledColor
             ),
             onClick = {
+
+                if(imageUri != null) {
+                    uploadProfileImage(imageUri = imageUri.toString(), context = context)
+                }
+
                 val _db = DbHandler(context)
                 val oldUserDate = _db.getUserDate()
                 val userCreateModel = CreateUserModelInApi(
@@ -288,4 +328,25 @@ private fun updateProfileUser(
             }
 
         })
+}
+
+private fun uploadProfileImage(
+    imageUri: String,
+    context: Context
+) {
+    Log.d("MyLog", imageUri)
+    val token = SharedPreference(context).readToken()
+
+    ApiService.retrofit.uploadProfileAvatar(token = "Bearer $token", imageUri = imageUri).enqueue(object : Callback<Unit> {
+        override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+            if(response.isSuccessful) {
+                Toast.makeText(context, response.code(), Toast.LENGTH_SHORT).show()
+            } else {
+            }
+        }
+
+        override fun onFailure(call: Call<Unit>, t: Throwable) {
+            Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
+        }
+    })
 }
