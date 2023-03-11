@@ -42,4 +42,16 @@ interface ApiInterface {
     fun getCatalog(
         @Header("Authorization") token: String
     ): Call<List<CatalogModel>?>
+
+    @POST("api/avatar")
+    fun uploadProfileAvatar(
+        @Header("Authorization") token: String,
+        @Body imageUri: String
+    ): Call<Unit>
+
+    @GET("api/catalog")
+    suspend fun getCatalog2(
+        @Header("Authorization") token: String
+    ): List<CatalogModel>?
+
 }

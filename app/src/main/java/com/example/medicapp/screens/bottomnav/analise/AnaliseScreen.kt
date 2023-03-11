@@ -1,7 +1,9 @@
 package com.example.medicapp.screens.bottomnav.analise
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -48,10 +50,10 @@ fun AnaliseScreen(navController: NavController) {
     val items = db.getItems()
     val getNews = remember { mutableStateOf<List<StockAndNewsModel>?>(null) }
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
-    getNews(context = context, result = getNews)
-    getCatalog(context = context, result = getCatalog)
-    val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
+    getNews(context = context, result = getNews)
+    getCatalog(context = context, result = getCatalog, scope)
+    val modalSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val price = remember { mutableStateOf(0) }
     val selectedItem = remember { mutableStateOf<CatalogModel?>(null) }
 
@@ -400,25 +402,19 @@ fun getNews(context: Context, result: MutableState<List<StockAndNewsModel>?>) {
         })
 }
 
-fun getCatalog(context: Context, result: MutableState<List<CatalogModel>?>) {
+fun getCatalog(context: Context, result: MutableState<List<CatalogModel>?>, scope: CoroutineScope) {
 
     val token = SharedPreference(context).readToken()
 
-    ApiService.retrofit.getCatalog("Bearer $token").enqueue(object : Callback<List<CatalogModel>?> {
-        override fun onResponse(
-            call: Call<List<CatalogModel>?>,
-            response: Response<List<CatalogModel>?>
-        ) {
-            if (response.isSuccessful) {
-                val resp = response.body()!!
-                result.value = resp
-            } else {
-                Toast.makeText(context, "Error ${response.code()}", Toast.LENGTH_SHORT).show()
-            }
-        }
 
-        override fun onFailure(call: Call<List<CatalogModel>?>, t: Throwable) {
-            Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
+
+
+    try {
+        scope.launch {
+            result.value  = ApiService.retrofit.getCatalog2("Bearer $token")
         }
-    })
+    }catch (ex: Exception){
+        Log.d(TAG, "getCatalog: ${ex.message}")
+    }
+
 }
