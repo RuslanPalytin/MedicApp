@@ -12,19 +12,21 @@ class DbHandlerAnalise(context: Context) : SQLiteOpenHelper(context, DB_NAME, nu
 
     companion object {
         private const val DB_NAME = "databaseAnalise.db"
-        private const val DB_VERSION = 2
+        private const val DB_VERSION = 4
         private const val TABLE_NAME = "analise_table"
 
         private const val ID = "id"
         private const val NAME = "name"
         private const val PRICE = "price"
+        private const val PEOPLE_NUMBER = "people_number"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
         val query = ("CREATE TABLE " + TABLE_NAME + " ("
                 + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + NAME + " TEXT,"
-                + PRICE + " TEXT)")
+                + PRICE + " TEXT,"
+                + PEOPLE_NUMBER + " TEXT)")
         db.execSQL(query)
     }
 
@@ -34,6 +36,7 @@ class DbHandlerAnalise(context: Context) : SQLiteOpenHelper(context, DB_NAME, nu
 
         values.put(NAME, name)
         values.put(PRICE, price)
+        values.put(PEOPLE_NUMBER, "1")
 
         db.insert(TABLE_NAME, null, values)
         db.close()
@@ -56,7 +59,7 @@ class DbHandlerAnalise(context: Context) : SQLiteOpenHelper(context, DB_NAME, nu
                         price = cursor.getString(2),
                         category = "",
                         time_result = "",
-                        preparation = "",
+                        preparation = cursor.getString(3),
                         bio = ""
                     )
                 )
@@ -66,6 +69,18 @@ class DbHandlerAnalise(context: Context) : SQLiteOpenHelper(context, DB_NAME, nu
         return catalog
     }
 
+    fun updateItem(name: String, price: String, oldNumber: String, newNumber: String) {
+        val db = this.readableDatabase
+        val values = ContentValues()
+
+        values.put(NAME, name)
+        values.put(PRICE, price)
+        values.put(PEOPLE_NUMBER, oldNumber)
+
+        db.update(TABLE_NAME, values, "$PEOPLE_NUMBER=?", arrayOf(newNumber))
+        db.close()
+    }
+
     fun deleteItem(itemName: String) {
         val db = this.writableDatabase
 
@@ -73,7 +88,7 @@ class DbHandlerAnalise(context: Context) : SQLiteOpenHelper(context, DB_NAME, nu
         db.close()
     }
 
-    fun deleteAddItems(items: MutableList<CatalogModel>) {
+    fun deleteAllItems(items: MutableList<CatalogModel>) {
         val db = this.writableDatabase
 
         for(i in 0 until items.size) {

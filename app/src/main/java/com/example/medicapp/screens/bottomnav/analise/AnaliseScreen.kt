@@ -44,7 +44,8 @@ import retrofit2.Response
 fun AnaliseScreen(navController: NavController) {
 
     val context = LocalContext.current
-
+    val db = DbHandlerAnalise(context)
+    val items = db.getItems()
     val getNews = remember { mutableStateOf<List<StockAndNewsModel>?>(null) }
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
     getNews(context = context, result = getNews)
@@ -93,7 +94,12 @@ fun AnaliseScreen(navController: NavController) {
                 )
             }
 
-            if (price.value != 0) {
+            if(price.value == 0) {
+                items.forEach {
+                    price.value += it.price.toInt()
+                }
+            }
+            else {
                 ShoppingCart(
                     prices = price,
                     navController = navController,
