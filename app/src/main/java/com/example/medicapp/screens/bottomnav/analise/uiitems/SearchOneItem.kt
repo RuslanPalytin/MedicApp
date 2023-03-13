@@ -1,6 +1,5 @@
 package com.example.medicapp.screens.bottomnav.analise.uiitems
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
