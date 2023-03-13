@@ -33,6 +33,7 @@ fun CatalogItem(
     val context = LocalContext.current
     val db = DbHandlerAnalise(context)
     val isButtonStyle = remember { mutableStateOf(true) }
+    val items = db.getItems()
 
     Card(
         elevation = 3.dp,
@@ -78,34 +79,53 @@ fun CatalogItem(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Button(
-                    modifier = Modifier
-                        .height(46.dp)
-                        .width(112.dp),
-                    onClick = {
-                        isButtonStyle.value = !isButtonStyle.value
-                        if(!isButtonStyle.value) {
-                            price.value += item.price.toInt()
-                            db.addItem(name = item.name, price = item.price)
-                        } else {
-                            price.value -= item.price.toInt()
-                            db.deleteItem(itemName = item.price)
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = if (isButtonStyle.value) ButtonEnabledColor else Color.White),
-                    shape = RoundedCornerShape(10.dp),
-                    elevation = ButtonDefaults.elevation(defaultElevation = 0.dp),
-                    border = BorderStroke(width = 1.dp, color = if(isButtonStyle.value) Color.White else ButtonEnabledColor)
-                ) {
-                    Text(
-
-                        text = if(isButtonStyle.value) "Добавить" else "Убрать",
-                        fontFamily = LatoRegular,
-                        color = if(isButtonStyle.value) Color.White else ButtonEnabledColor,
-                        fontSize = 14.sp
-                    )
+                //TODO Доделать
+                items.forEach {
+                    ShowButton(enabled = it.name == item.name, item = item, price = price, isButtonStyle = isButtonStyle)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ShowButton(
+    enabled: Boolean,
+    item: CatalogModel,
+    price: MutableState<Int>,
+    isButtonStyle: MutableState<Boolean>
+) {
+    val context = LocalContext.current
+    val db = DbHandlerAnalise(context)
+
+    Button(
+        modifier = Modifier
+            .height(46.dp)
+            .width(112.dp),
+        onClick = {
+            isButtonStyle.value = !isButtonStyle.value
+            if (!isButtonStyle.value) {
+                price.value += item.price.toInt()
+                db.addItem(name = item.name, price = item.price)
+            } else {
+                price.value -= item.price.toInt()
+                db.deleteItem(itemName = item.price)
+            }
+        },
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = if (enabled) ButtonEnabledColor else Color.White),
+        elevation = ButtonDefaults.elevation(defaultElevation = 0.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (enabled) Color.White else ButtonEnabledColor
+        )
+    ) {
+        Text(
+            text = if (enabled) "Добавить" else "Убрать",
+            fontFamily = LatoRegular,
+            color = if (enabled) Color.White else ButtonEnabledColor,
+            fontSize = 14.sp
+        )
+
     }
 }
