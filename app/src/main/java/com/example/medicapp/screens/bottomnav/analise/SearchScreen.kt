@@ -15,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.medicapp.R
 import com.example.medicapp.models.CatalogModel
@@ -24,27 +25,33 @@ import com.example.medicapp.ui.theme.*
 @Composable
 fun SearchScreen(navController: NavController) {
 
-    var searchText by remember { mutableStateOf("") }
-    var filteredText: List<CatalogModel> = listOf()
+    //var searchText by remember { mutableStateOf("") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val getCatalog = remember { mutableStateOf<List<CatalogModel>?>(null) }
     getCatalog(context = context, result = getCatalog, scope)
+
+    val viewModel = viewModel<SearchViewModel>()
+    val searchText by viewModel.searchText.collectAsState()
+    val analise by viewModel.analise.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 40.dp)
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .clip(shape = RoundedCornerShape(10.dp)),
                 value = searchText,
-                onValueChange = { newText -> searchText = newText },
+                onValueChange = viewModel::onSearchTextChange,
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.size(20.dp),
@@ -55,10 +62,7 @@ fun SearchScreen(navController: NavController) {
                 trailingIcon = {
                     Icon(
                         modifier = Modifier
-                            .size(20.dp)
-                            .clickable {
-                                searchText = ""
-                            },
+                            .size(20.dp),
                         painter = painterResource(id = R.drawable.cancel_icon),
                         contentDescription = null
                     )
@@ -86,11 +90,12 @@ fun SearchScreen(navController: NavController) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Divider(thickness = 1.dp, color = StrokeItemColor)
-        LazyColumn(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
         ) {
-            if(getCatalog.value != null) {
+            if (getCatalog.value != null) {
                 items(count = getCatalog.value!!.size) { index ->
                     SearchOneItem(item = getCatalog.value!![index])
                 }

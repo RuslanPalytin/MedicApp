@@ -400,9 +400,6 @@ fun getCatalog(context: Context, result: MutableState<List<CatalogModel>?>, scop
 
     val token = SharedPreference(context).readToken()
 
-
-
-
     try {
         scope.launch {
             result.value  = ApiService.retrofit.getCatalog2("Bearer $token")
