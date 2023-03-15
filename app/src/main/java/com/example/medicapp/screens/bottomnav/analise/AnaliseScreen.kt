@@ -29,6 +29,7 @@ import com.example.medicapp.models.CatalogModel
 import com.example.medicapp.models.StockAndNewsModel
 import com.example.medicapp.navigation.AnaliseScreenSealed
 import com.example.medicapp.screens.bottomnav.analise.uiitems.CatalogItem
+import com.example.medicapp.screens.bottomnav.analise.uiitems.ShowButton
 import com.example.medicapp.screens.bottomnav.analise.uiitems.StockAndNewsItem
 import com.example.medicapp.storage.DbHandlerAnalise
 import com.example.medicapp.storage.SharedPreference
@@ -96,12 +97,11 @@ fun AnaliseScreen(navController: NavController) {
                 )
             }
 
-            if(price.value == 0) {
+            if (price.value == 0) {
                 items.forEach {
                     price.value += it.price.toInt()
                 }
-            }
-            else {
+            } else {
                 ShoppingCart(
                     prices = price,
                     navController = navController,
@@ -285,6 +285,11 @@ fun TabsContent(
     selectedItem: MutableState<CatalogModel?>,
     price: MutableState<Int>,
 ) {
+
+    val context = LocalContext.current
+    val items = DbHandlerAnalise(context).getItems()
+    val isButtonStyle = remember { mutableStateOf(true) }
+
     HorizontalPager(
         count = tabs.size,
         state = pagerState,
@@ -408,9 +413,9 @@ fun getCatalog(context: Context, result: MutableState<List<CatalogModel>?>, scop
 
     try {
         scope.launch {
-            result.value  = ApiService.retrofit.getCatalog2("Bearer $token")
+            result.value = ApiService.retrofit.getCatalog2("Bearer $token")
         }
-    }catch (ex: Exception){
+    } catch (ex: Exception) {
         Log.d(TAG, "getCatalog: ${ex.message}")
     }
 

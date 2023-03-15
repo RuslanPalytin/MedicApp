@@ -4,9 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -16,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.medicapp.R
 import com.example.medicapp.screens.bottomnav.analise.uiitems.ShoppingCartItem
 import com.example.medicapp.storage.DbHandlerAnalise
+import com.example.medicapp.ui.theme.ButtonEnabledColor
 import com.example.medicapp.ui.theme.LatoRegular
 
 @Composable
@@ -57,11 +63,12 @@ fun ShoppingCartScreen(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(32.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxHeight(0.5f),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(count = items.size) { index ->
-
                 peopleNumbers.add(mutableStateOf(1))
-
                 ShoppingCartItem(
                     name = items[index].name,
                     price = items[index].price,
@@ -78,10 +85,28 @@ fun ShoppingCartScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "${sum.value}",
+                text = "${sum.value} ₽",
                 fontFamily = LatoRegular,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        Button(
+            onClick = { /*TODO*/ },
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor)
+        ) {
+            Text(
+                text = "Перейти к оформлению заказа",
+                fontFamily = LatoRegular,
+                fontSize = 17.sp,
+                color = Color.White
             )
         }
     }

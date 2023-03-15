@@ -30,10 +30,11 @@ fun CatalogItem(
     selectedItem: MutableState<CatalogModel?>,
     price: MutableState<Int>
 ) {
+
     val context = LocalContext.current
-    val db = DbHandlerAnalise(context)
+    val items = DbHandlerAnalise(context).getItems()
     val isButtonStyle = remember { mutableStateOf(true) }
-    val items = db.getItems()
+    val enabled = remember { mutableStateOf(true) }
 
     Card(
         elevation = 3.dp,
@@ -79,9 +80,17 @@ fun CatalogItem(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                //TODO Доделать
-                items.forEach {
-                    ShowButton(enabled = it.name == item.name, item = item, price = price, isButtonStyle = isButtonStyle)
+
+                for(i in 0 until items.size) {
+                    if(item.name == items[i].name) {
+                        enabled.value = false
+                        break
+                    }
+                }
+                if(enabled.value) {
+                    ShowButton(enabled = true, item = item , price = price, isButtonStyle = isButtonStyle)
+                } else {
+                    ShowButton(enabled = false, item = item , price = price, isButtonStyle = isButtonStyle)
                 }
             }
         }
@@ -103,27 +112,27 @@ fun ShowButton(
             .height(46.dp)
             .width(112.dp),
         onClick = {
-            isButtonStyle.value = !isButtonStyle.value
-            if (!isButtonStyle.value) {
+            if (isButtonStyle.value) {
                 price.value += item.price.toInt()
                 db.addItem(name = item.name, price = item.price)
             } else {
                 price.value -= item.price.toInt()
                 db.deleteItem(itemName = item.price)
             }
+            isButtonStyle.value = !isButtonStyle.value
         },
         shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = if (enabled) ButtonEnabledColor else Color.White),
+        colors = ButtonDefaults.buttonColors(backgroundColor = if (!isButtonStyle.value) ButtonEnabledColor else Color.White),
         elevation = ButtonDefaults.elevation(defaultElevation = 0.dp),
         border = BorderStroke(
             width = 1.dp,
-            color = if (enabled) Color.White else ButtonEnabledColor
+            color = if (!isButtonStyle.value) Color.White else ButtonEnabledColor
         )
     ) {
         Text(
-            text = if (enabled) "Добавить" else "Убрать",
+            text = if (!isButtonStyle.value) "Добавить" else "Убрать",
             fontFamily = LatoRegular,
-            color = if (enabled) Color.White else ButtonEnabledColor,
+            color = if (!isButtonStyle.value) Color.White else ButtonEnabledColor,
             fontSize = 14.sp
         )
 
