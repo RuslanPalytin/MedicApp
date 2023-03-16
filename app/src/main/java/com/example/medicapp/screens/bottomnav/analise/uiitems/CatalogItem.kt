@@ -88,9 +88,9 @@ fun CatalogItem(
                     }
                 }
                 if(enabled.value) {
-                    ShowButton(enabled = true, item = item , price = price, isButtonStyle = isButtonStyle)
+                    ShowButton(item = item , price = price, isButtonStyle = isButtonStyle)
                 } else {
-                    ShowButton(enabled = false, item = item , price = price, isButtonStyle = isButtonStyle)
+                    ShowButton(item = item , price = price, isButtonStyle = isButtonStyle)
                 }
             }
         }
@@ -99,7 +99,6 @@ fun CatalogItem(
 
 @Composable
 fun ShowButton(
-    enabled: Boolean,
     item: CatalogModel,
     price: MutableState<Int>,
     isButtonStyle: MutableState<Boolean>

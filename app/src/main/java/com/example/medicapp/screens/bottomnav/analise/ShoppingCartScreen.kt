@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medicapp.R
+import com.example.medicapp.navigation.AnaliseScreenSealed
 import com.example.medicapp.screens.bottomnav.analise.uiitems.ShoppingCartItem
 import com.example.medicapp.storage.DbHandlerAnalise
 import com.example.medicapp.ui.theme.ButtonEnabledColor
@@ -95,10 +96,12 @@ fun ShoppingCartScreen(navController: NavController) {
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { navController.navigate(AnaliseScreenSealed.MakingOrderScreen.route) },
             modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
+                .height(56.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor)
         ) {
