@@ -1,6 +1,5 @@
 package com.example.medicapp.screens.bottomnav.analise
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.medicapp.R
-import com.example.medicapp.graphs.Graph
 import com.example.medicapp.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
@@ -35,11 +33,14 @@ fun MakingOrderScreen(navController: NavController) {
     val selectedEdit = remember { mutableStateOf("") }
     val analiseNumber = remember { mutableStateOf(0) }
     val analiseSum = remember { mutableStateOf(0) }
+    val enterAddress = remember { mutableStateOf("Выберите дату и время") }
+    val enterFlat = remember { mutableStateOf("") }
+    val enterDateAndTime = remember { mutableStateOf("") }
 
     ModalBottomSheetLayout(
         sheetContent = {
             when (selectedEdit.value) {
-                "Введите ваш адрес" -> SheetContentAddress(sheetState = sheetState, scope = scope)
+                "Введите ваш адрес" -> SheetContentAddress(sheetState = sheetState, scope = scope, )
                 "Выберите дату и время" -> SheetContentDateAndTime(
                     sheetState = sheetState,
                     scope = scope
@@ -74,8 +75,8 @@ fun MakingOrderScreen(navController: NavController) {
                 fontFamily = LatoRegular
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Edit(
-                placeholder = "Введите ваш адрес",
+            SelectedField(
+                placeholder = enterAddress,
                 modalSheet = sheetState,
                 scope = scope,
                 selectedText = selectedEdit
@@ -89,8 +90,8 @@ fun MakingOrderScreen(navController: NavController) {
                 fontFamily = LatoRegular
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Edit(
-                placeholder = "Выберите дату и время",
+            SelectedField(
+                placeholder = enterDateAndTime,
                 modalSheet = sheetState,
                 scope = scope,
                 selectedText = selectedEdit
@@ -134,6 +135,18 @@ fun SheetContentAddress(sheetState: ModalBottomSheetState, scope: CoroutineScope
     val entrance = remember { mutableStateOf("") }
     val floor = remember { mutableStateOf("") }
     val intercom = remember { mutableStateOf("") }
+    val enable = remember { mutableStateOf(false) }
+    val isSaveAddress = remember { mutableStateOf(false) }
+
+    enable.value =
+        address.value.isNotEmpty() &&
+                longitude.value.isNotEmpty() &&
+                latitude.value.isNotEmpty() &&
+                altitude.value.isNotEmpty() &&
+                flat.value.isNotEmpty() &&
+                entrance.value.isNotEmpty() &&
+                floor.value.isNotEmpty() &&
+                intercom.value.isNotEmpty()
 
     Column(
         modifier = Modifier
@@ -161,12 +174,49 @@ fun SheetContentAddress(sheetState: ModalBottomSheetState, scope: CoroutineScope
         Spacer(modifier = Modifier.height(8.dp))
         EditText(label = "Ваш адрес", enterText = address, outlineSize = 1f)
         Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             EditText(label = "Долгота", enterText = longitude, outlineSize = 0.3f)
             Spacer(modifier = Modifier.width(12.dp))
             EditText(label = "Широта", enterText = latitude, outlineSize = 0.6f)
             Spacer(modifier = Modifier.width(12.dp))
             EditText(label = "Высота", enterText = altitude, outlineSize = 1f)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            EditText(label = "Квартира", enterText = flat, outlineSize = 0.2f)
+            Spacer(modifier = Modifier.width(16.dp))
+            EditText(label = "Подъезд", enterText = entrance, outlineSize = 0.5f)
+            Spacer(modifier = Modifier.width(16.dp))
+            EditText(label = "Этаж", enterText = floor, outlineSize = 1f)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        EditText(label = "Домофон", enterText = intercom, outlineSize = 1f)
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Text(
+                text = "Сохранить этот адрес?",
+                fontSize = 16.sp,
+                fontFamily = LatoRegular,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.height(18.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            enabled = enable.value,
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor, contentColor = Color.White),
+            onClick = { /*TODO*/ }
+        ) {
+            Text(text = "Подтвердить", fontFamily = LatoRegular, fontSize = 17.sp)
         }
     }
 }
@@ -185,9 +235,8 @@ fun SheetContentPatient(sheetState: ModalBottomSheetState, scope: CoroutineScope
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun Edit(
-    placeholder: String,
-    @DrawableRes icon: Int? = null,
+private fun SelectedField(
+    placeholder: MutableState<String>,
     modalSheet: ModalBottomSheetState,
     scope: CoroutineScope,
     selectedText: MutableState<String>
@@ -200,7 +249,7 @@ private fun Edit(
             .background(color = BackgroundTextField)
             .border(width = 1.dp, color = BorderColorTextField)
             .clickable {
-                selectedText.value = placeholder
+                selectedText.value = placeholder.value
                 scope.launch {
                     modalSheet.show()
                 }
@@ -212,7 +261,7 @@ private fun Edit(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = placeholder,
+                text = placeholder.value,
                 fontFamily = LatoRegular,
                 fontSize = 16.sp,
                 color = GrayTextOnBoarding
@@ -223,15 +272,10 @@ private fun Edit(
 
 @Composable
 private fun EditText(
-    placeholder: String = "",
     label: String,
     enterText: MutableState<String>,
-    @DrawableRes icon: Int? = null,
     outlineSize: Float
 ) {
-
-    var expanded by remember { mutableStateOf(false) }
-
     Column(modifier = Modifier.fillMaxWidth(outlineSize)) {
         Text(text = label, color = GrayTextOnBoarding, fontFamily = LatoRegular, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(4.dp))
@@ -241,13 +285,6 @@ private fun EditText(
                 .clip(shape = RoundedCornerShape(10.dp)),
             value = enterText.value,
             onValueChange = { newText -> enterText.value = newText },
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    fontFamily = LatoRegular,
-                    fontSize = 14.sp
-                )
-            },
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 cursorColor = GrayTextOnBoarding,
@@ -256,46 +293,6 @@ private fun EditText(
                 focusedIndicatorColor = BorderColorTextField,
                 unfocusedIndicatorColor = BorderColorTextField
             ),
-            enabled = icon == null,
-            trailingIcon = {
-                if (icon != null) {
-                    Icon(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable { expanded = true },
-                        painter = painterResource(id = icon),
-                        contentDescription = null
-                    )
-                }
-            }
         )
-        DropdownMenu(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally)
-                .padding(horizontal = 20.dp),
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            Text(
-                text = "Мужской",
-                fontSize = 18.sp,
-                fontFamily = LatoRegular,
-                modifier = Modifier.clickable {
-                    enterText.value = "Мужской"
-                    expanded = false
-                }
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "Женский",
-                fontSize = 18.sp,
-                fontFamily = LatoRegular,
-                modifier = Modifier.clickable {
-                    enterText.value = "Женский"
-                    expanded = false
-                }
-            )
-        }
     }
 }
