@@ -2,6 +2,10 @@ package com.example.medicapp.screens.bottomnav.analise
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.GridCells
+import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -33,20 +37,29 @@ fun MakingOrderScreen(navController: NavController) {
     val selectedEdit = remember { mutableStateOf("") }
     val analiseNumber = remember { mutableStateOf(0) }
     val analiseSum = remember { mutableStateOf(0) }
-    val enterAddress = remember { mutableStateOf("Выберите дату и время") }
+    val enterAddress = remember { mutableStateOf("Введите ваш адрес") }
     val enterFlat = remember { mutableStateOf("") }
-    val enterDateAndTime = remember { mutableStateOf("") }
+    val enterDateAndTime = remember { mutableStateOf("Выберите дату и время") }
 
     ModalBottomSheetLayout(
         sheetContent = {
             when (selectedEdit.value) {
-                "Введите ваш адрес" -> SheetContentAddress(sheetState = sheetState, scope = scope, )
+                "Введите ваш адрес" -> SheetContentAddress(
+                    sheetState = sheetState,
+                    scope = scope,
+                    placeholder = enterAddress
+                )
                 "Выберите дату и время" -> SheetContentDateAndTime(
                     sheetState = sheetState,
-                    scope = scope
+                    scope = scope,
+                    placeholder = enterDateAndTime
                 )
                 "Пациент" -> SheetContentPatient(sheetState = sheetState, scope = scope)
-                else -> SheetContentAddress(sheetState = sheetState, scope = scope)
+                else -> SheetContentAddress(
+                    sheetState = sheetState,
+                    scope = scope,
+                    placeholder = enterAddress
+                )
             }
         },
         sheetState = sheetState,
@@ -76,6 +89,7 @@ fun MakingOrderScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             SelectedField(
+                label = "Введите ваш адрес",
                 placeholder = enterAddress,
                 modalSheet = sheetState,
                 scope = scope,
@@ -91,6 +105,7 @@ fun MakingOrderScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             SelectedField(
+                label = "Выберите дату и время",
                 placeholder = enterDateAndTime,
                 modalSheet = sheetState,
                 scope = scope,
@@ -125,7 +140,11 @@ fun MakingOrderScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SheetContentAddress(sheetState: ModalBottomSheetState, scope: CoroutineScope) {
+fun SheetContentAddress(
+    sheetState: ModalBottomSheetState,
+    scope: CoroutineScope,
+    placeholder: MutableState<String>
+) {
 
     val address = remember { mutableStateOf("") }
     val longitude = remember { mutableStateOf("") }
@@ -135,10 +154,10 @@ fun SheetContentAddress(sheetState: ModalBottomSheetState, scope: CoroutineScope
     val entrance = remember { mutableStateOf("") }
     val floor = remember { mutableStateOf("") }
     val intercom = remember { mutableStateOf("") }
-    val enable = remember { mutableStateOf(false) }
+    val enableButton = remember { mutableStateOf(false) }
     val isSaveAddress = remember { mutableStateOf(false) }
 
-    enable.value =
+    enableButton.value =
         address.value.isNotEmpty() &&
                 longitude.value.isNotEmpty() &&
                 latitude.value.isNotEmpty() &&
@@ -211,20 +230,125 @@ fun SheetContentAddress(sheetState: ModalBottomSheetState, scope: CoroutineScope
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = enable.value,
+            enabled = enableButton.value,
             shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(backgroundColor = ButtonEnabledColor, contentColor = Color.White),
-            onClick = { /*TODO*/ }
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = ButtonEnabledColor,
+                contentColor = Color.White
+            ),
+            onClick = {
+                placeholder.value = address.value + ", кв. " + flat.value
+                scope.launch {
+                    sheetState.hide()
+                }
+            }
         ) {
             Text(text = "Подтвердить", fontFamily = LatoRegular, fontSize = 17.sp)
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun SheetContentDateAndTime(sheetState: ModalBottomSheetState, scope: CoroutineScope) {
+fun SheetContentDateAndTime(
+    sheetState: ModalBottomSheetState,
+    scope: CoroutineScope,
+    placeholder: MutableState<String>
+) {
 
+    val date = remember { mutableStateOf("") }
+    val time = remember { mutableStateOf("") }
+    val enableButton = remember { mutableStateOf(false) }
+    val times = listOf("10:00", "13:00", "14:00", "15:00", "16:00", "18:00", "19:00")
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(times[0]) }
+
+    enableButton.value = date.value.isNotEmpty()
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .padding(top = 24.dp, bottom = 32.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Дата и время",
+                fontSize = 20.sp,
+                fontFamily = LatoRegular,
+                fontWeight = FontWeight.Bold
+            )
+            Icon(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable {
+                        scope.launch {
+                            sheetState.hide()
+                        }
+                    },
+                painter = painterResource(id = R.drawable.close_icon),
+                contentDescription = null,
+                tint = TextColorMakingOrder
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        EditText(label = "Выберите дату", enterText = date, outlineSize = 1f)
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Выберите время",
+            color = GrayTextOnBoarding,
+            fontFamily = LatoRegular,
+            fontSize = 14.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+            cells = GridCells.Adaptive(minSize = 76.dp)
+        ) {
+            items(times.size) { index ->
+                Card(
+                    modifier = Modifier
+                        .padding(end = 16.dp, bottom = 16.dp)
+                        .clickable {
+                            onOptionSelected(times[index])
+                            time.value = times[index]
+                        },
+                    shape = RoundedCornerShape(10.dp),
+                    backgroundColor = if (times[index] == selectedOption) ButtonEnabledColor else SelectedDateAndTimeTextColor,
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        text = times[index],
+                        color = if (times[index] == selectedOption) Color.White else GrayTextOnBoarding
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(10.dp),
+            enabled = enableButton.value,
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = ButtonEnabledColor,
+                contentColor = Color.White
+            ),
+            onClick = {
+                placeholder.value = date.value + " " + time.value
+                scope.launch {
+                    sheetState.hide()
+                }
+            }
+        ) {
+            Text(text = "Подтвердить", fontFamily = LatoRegular, fontSize = 17.sp)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -236,11 +360,15 @@ fun SheetContentPatient(sheetState: ModalBottomSheetState, scope: CoroutineScope
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun SelectedField(
+    label: String,
     placeholder: MutableState<String>,
     modalSheet: ModalBottomSheetState,
     scope: CoroutineScope,
     selectedText: MutableState<String>
 ) {
+    val placeholders: MutableList<String> =
+        mutableListOf("Введите ваш адрес", "Выберите дату и время", "Пациент")
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,7 +377,7 @@ private fun SelectedField(
             .background(color = BackgroundTextField)
             .border(width = 1.dp, color = BorderColorTextField)
             .clickable {
-                selectedText.value = placeholder.value
+                selectedText.value = label
                 scope.launch {
                     modalSheet.show()
                 }
@@ -264,7 +392,7 @@ private fun SelectedField(
                 text = placeholder.value,
                 fontFamily = LatoRegular,
                 fontSize = 16.sp,
-                color = GrayTextOnBoarding
+                color = if (!placeholders.contains(placeholder.value)) Color.Black else GrayTextOnBoarding
             )
         }
     }
